@@ -1,6 +1,7 @@
 package com.DenserMusic.DenserMusic;
 
 import com.DenserMusic.DenserMusic.Principal.Principal;
+import com.DenserMusic.DenserMusic.repository.ArtistaRepository;
 import com.DenserMusic.DenserMusic.service.ConsultaDeezerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -13,13 +14,16 @@ public class DenserMusicApplication implements CommandLineRunner {
 	@Autowired
 	private ConsultaDeezerService deezerService;
 
+	@Autowired
+	private ArtistaRepository repository;
+
 	public static void main(String[] args) {
 		SpringApplication.run(DenserMusicApplication.class, args);
 	}
 
 	@Override
 	public void run(String... args) throws Exception {
-		Principal principal = new Principal(deezerService);
+		Principal principal = new Principal(deezerService, repository);
 		principal.exibeMenu();
 	}
 }

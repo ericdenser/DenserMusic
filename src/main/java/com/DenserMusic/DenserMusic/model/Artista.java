@@ -1,9 +1,22 @@
 package com.DenserMusic.DenserMusic.model;
 
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "Artistas")
 public class Artista {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(unique = true)
     private String name;
+
     private String urlImage;
     private Integer totalDeezerFans;
+
+    public Artista() {}
 
     public Artista(String name, String urlImage, Integer totalDeezerFansFans) {
         this.name = name;
@@ -37,10 +50,7 @@ public class Artista {
 
     @Override
     public String toString() {
-        return "Artista{" +
-                "name='" + name + '\'' +
-                ", picture='" + urlImage + '\'' +
-                ", totalFans=" + totalDeezerFans +
-                '}';
+        return "Artista: " + name + "\ntotalFans:" + totalDeezerFans;
+
     }
 }
