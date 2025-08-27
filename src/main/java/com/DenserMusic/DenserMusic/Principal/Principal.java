@@ -1,7 +1,10 @@
 package com.DenserMusic.DenserMusic.Principal;
 
-import com.DenserMusic.DenserMusic.model.Artista;
-import com.DenserMusic.DenserMusic.repository.ArtistaRepository;
+import com.DenserMusic.DenserMusic.dto.DeezerTrackSearchResult;
+import com.DenserMusic.DenserMusic.model.Artist;
+import com.DenserMusic.DenserMusic.repository.ArtistRepository;
+import com.DenserMusic.DenserMusic.repository.TrackRepository;
+import com.DenserMusic.DenserMusic.repository.PlaylistRepository;
 import com.DenserMusic.DenserMusic.service.ConsultaDeezerService;
 import org.springframework.dao.DataIntegrityViolationException;
 
@@ -13,11 +16,15 @@ public class Principal {
 
     private final Scanner scanner = new Scanner(System.in);
     private final ConsultaDeezerService deezerService;
-    private final ArtistaRepository repository;
+    private final ArtistRepository artistRepository;
+    private final TrackRepository trackRepository;
+    private final PlaylistRepository playlistRepository;
 
-    public Principal(ConsultaDeezerService deezerService, ArtistaRepository repository) {
+    public Principal(ConsultaDeezerService deezerService, ArtistRepository artistRepository, TrackRepository trackRepository, PlaylistRepository playlistRepository) {
         this.deezerService = deezerService;
-        this.repository = repository;
+        this.artistRepository = artistRepository;
+        this.trackRepository = trackRepository;
+        this.playlistRepository = playlistRepository;
     }
 
     public void exibeMenu() {
@@ -29,9 +36,10 @@ public class Principal {
                     
                     1- Buscar artistas
                     2- Buscar músicas
-                    3- Sua Biblioteca
-                    4- Perfil
-                    5- Pesquisar sobre um artista
+                    3- Criar playlist
+                    4- Adicionar músicas a uma playlist
+                    5- Listas musicas salvas
+                    6- Pesquisar sobre um artista
                     
                     0 - SAIR
                     """;
@@ -45,12 +53,15 @@ public class Principal {
                     buscarArtista();
                     break;
                 case 2:
+                    buscarMusica();
                     break;
                 case 3:
                     break;
                 case 4:
                     break;
                 case 5:
+                    break;
+                case 6:
                     break;
                 case 0:
                     break;
@@ -61,11 +72,54 @@ public class Principal {
 
     }
 
+    private void buscarMusica() {
+        System.out.println("Informe um nome de música: ");
+        var trecho = scanner.nextLine();
+        List<DeezerTrackSearchResult> tracksEncontradas = null;
+        try {
+            tracksEncontradas = deezerService.buscaTracksPorNome(trecho);
+            if (tracksEncontradas.isEmpty()) {
+                System.out.println("Nenhuma música encontrada.");
+                return;
+            }
+            System.out.println("Foram encontradas " + tracksEncontradas.size() + "musicas. Qual delas você buscava?");
+            for (int i = 0; i < tracksEncontradas.size(); i++) {
+                var trackAtual = tracksEncontradas.get(i);
+                System.out.println((1 + i) + " - " + trackAtual.title() + " " + trackAtual.artist().name());
+
+            }
+
+            System.out.println("""
+                    0 - Cancelar
+                    Digite sua opcao:
+                    """);
+            int escolha = scanner.nextInt();
+            scanner.nextLine();
+
+            if (escolha > 0 && escolha <= tracksEncontradas.size()) {
+                DeezerTrackSearchResult trackEscolhida = tracksEncontradas.get(escolha - 1);
+                long trackId = trackEscolhida.id();
+                String trackArtistName = trackEscolhida.artist().name();
+
+                Optional<Artist> artist = artistRepository.findByNameIgnoreCase(trackArtistName);
+
+                if (artist.isPresent()) {
+                    deezerService.salvarMusicaPorId(trackId, artist.get());
+                    System.out.println("Música salva com sucesso na sua biblioteca!");
+                } else {
+                    System.out.println("O artista '" + trackArtistName + "' ainda não está na sua biblioteca. Busque e salve o artista primeiro.");
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Detalhe técnico: " + e.getMessage());
+        }
+    }
+
     private void buscarArtista() {
         System.out.println("Informe o nome do artista que deseja buscar: ");
         var nomeDoArtista = scanner.nextLine();
 
-        List<Artista> artistasEncontrados = deezerService.buscaArtistasPorNome(nomeDoArtista);
+        List<Artist> artistasEncontrados = deezerService.buscaArtistasPorNome(nomeDoArtista);
 
 
         if (artistasEncontrados.isEmpty()) {
@@ -82,26 +136,28 @@ public class Principal {
             """);
         int escolha = scanner.nextInt();
         scanner.nextLine();
-            if (escolha > 0 && escolha <= artistasEncontrados.size()) {
-                Artista artistaEscolhido = artistasEncontrados.get(escolha - 1);
+        if (escolha > 0 && escolha <= artistasEncontrados.size()) {
+            Artist artistaEscolhido = artistasEncontrados.get(escolha - 1);
 
-                Optional<Artista> artistaNoBanco = repository.findByNameIgnoreCase(artistaEscolhido.getName());
-                if(artistaNoBanco.isPresent()) {
-                    System.out.println("\n" + artistaEscolhido.getName() + " já está salvo na sua biblioteca!");
-                    System.out.println("INFORMAÇÕES DO ARTISTA:");
-                    System.out.println(artistaNoBanco.get());
-                } else {
-                    try {
-                        repository.save(artistaEscolhido);
-                        System.out.println("Artista salvo no banco de dados com sucesso!");
-                    } catch (DataIntegrityViolationException e) {
-                        System.out.println("ERRO: Este artista já existe no banco de dados.");
-                    }
-                }
-            } else if (escolha == 0){
-                System.out.println("Operação cancelada.");
+            Optional<Artist> artistaNoBanco = artistRepository.findByNameIgnoreCase(artistaEscolhido.getName());
+            if(artistaNoBanco.isPresent()) {
+                System.out.println("\n" + artistaEscolhido.getName() + " já está salvo na sua biblioteca!");
+                System.out.println("INFORMAÇÕES DO ARTISTA:");
+                System.out.println(artistaNoBanco.get());
             } else {
-                System.out.println("Opção inválida.");
+                try {
+                    artistRepository.save(artistaEscolhido);
+                    System.out.println("Artista salvo no banco de dados com sucesso!");
+                } catch (DataIntegrityViolationException e) {
+                    System.out.println("ERRO: Este artista já existe no banco de dados.");
+                }
             }
+        } else if (escolha == 0){
+            System.out.println("Operação cancelada.");
+        } else {
+            System.out.println("Opção inválida.");
         }
     }
+
+}
+

@@ -3,8 +3,8 @@ package com.DenserMusic.DenserMusic.model;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "Artistas")
-public class Artista {
+@Table(name = "artists")
+public class Artist {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -16,9 +16,9 @@ public class Artista {
     private String urlImage;
     private Integer totalDeezerFans;
 
-    public Artista() {}
+    public Artist() {}
 
-    public Artista(String name, String urlImage, Integer totalDeezerFansFans) {
+    public Artist(String name, String urlImage, Integer totalDeezerFansFans) {
         this.name = name;
         this.urlImage = urlImage;
         this.totalDeezerFans = totalDeezerFansFans;
