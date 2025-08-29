@@ -3,6 +3,7 @@ package com.DenserMusic.DenserMusic.model;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
+import java.util.Objects;
 
 @Entity
 @Table(name = "musics")
@@ -12,7 +13,7 @@ public class Track {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne //varias tracks para um artista
     private Artist artist;
 
     private String name;
@@ -79,4 +80,16 @@ public class Track {
         this.releaseDate = releaseDate;
     }
 
+
+    @Override // garantir a igualdade correta de objetos
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Track track = (Track) o;
+        return Objects.equals(id, track.id);
+    }
+
+    @Override // garantir a igualdade correta de objetos
+    public int hashCode() {
+        return Objects.hashCode(id);
+    }
 }

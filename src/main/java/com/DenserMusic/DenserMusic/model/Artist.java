@@ -2,6 +2,8 @@ package com.DenserMusic.DenserMusic.model;
 
 import jakarta.persistence.*;
 
+import java.util.Objects;
+
 @Entity
 @Table(name = "artists")
 public class Artist {
@@ -52,5 +54,17 @@ public class Artist {
     public String toString() {
         return "Artista: " + name + "\ntotalFans:" + totalDeezerFans;
 
+    }
+
+    @Override // garantir a igualdade correta de objetos
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Artist artist = (Artist) o;
+        return Objects.equals(id, artist.id);
+    }
+
+    @Override // garantir a igualdade correta de objetos
+    public int hashCode() {
+        return Objects.hashCode(id);
     }
 }

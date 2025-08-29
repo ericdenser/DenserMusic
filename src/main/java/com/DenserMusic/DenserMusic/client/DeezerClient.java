@@ -15,5 +15,5 @@ public interface DeezerClient {
     DeezerTrack getTrackById(@PathVariable("id") Long trackId); // receba um trackId e substitua-o no placeholder {id}
 
     @GetExchange("/search/track")
-    DeezerTrackSearchResponse searchTrackByName(@RequestParam("q") String trackName);
+    DeezerTrackSearchResponse getTrackByName(@RequestParam("q") String trackName);
 }

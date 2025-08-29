@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Table(name = "playlists")
@@ -14,36 +15,34 @@ public class Playlist {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String nome;
+    private String name;
 
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    //varias tracks na playlist, e varias playlists com a track
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER) // cascade all e EAGER podem ser arriscados futuramente (há serem avaliados)
     @JoinTable(
-            name = "playlist_musics",
-            joinColumns = @JoinColumn(name = "playlist_id"),
-            inverseJoinColumns = @JoinColumn(name = "music_id")
+            name = "playlist_tracks",
+            joinColumns = @JoinColumn(name = "playlist_id"), // coluna que referencia o ID da playlist na tabela intermediária.
+            inverseJoinColumns = @JoinColumn(name = "track_id") // coluna que referencia o ID da track na tabela intermediária.
     )
-
-    List<Track> musicsOfPlaylist = new ArrayList<>();
+    List<Track> tracksOfPlaylist = new ArrayList<>();
 
     public Playlist() {}
 
 
-
-
-    public String getNome() {
-        return nome;
+    public String getName() {
+        return name;
     }
 
-    public void setNome(String nome) {
-        this.nome = nome;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public List<Track> getMusicsOfPlaylist() {
-        return musicsOfPlaylist;
+    public List<Track> getTracksOfPlaylist() {
+        return tracksOfPlaylist;
     }
 
-    public void setMusicsOfPlaylist(List<Track> musicsOfPlaylist) {
-        this.musicsOfPlaylist = musicsOfPlaylist;
+    public void setTracksOfPlaylist(List<Track> musicsOfPlaylist) {
+        this.tracksOfPlaylist = musicsOfPlaylist;
     }
 
     public Long getId() {
@@ -54,5 +53,16 @@ public class Playlist {
         this.id = id;
     }
 
+    @Override// garantir a igualdade correta de objetos
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Playlist playlist = (Playlist) o;
+        return Objects.equals(id, playlist.id);
+    }
+
+    @Override// garantir a igualdade correta de objetos
+    public int hashCode() {
+        return Objects.hashCode(id);
+    }
 
 }
