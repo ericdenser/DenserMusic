@@ -39,7 +39,7 @@ public class Principal {
                     1- Buscar artistas
                     2- Buscar músicas
                     3- Criar playlist
-                    4- Adicionar músicas a uma playlist
+                    4- Gerenciar playlist
                     5- Sua biblioteca
                     6- Pesquisar sobre um artista
                     
@@ -78,6 +78,18 @@ public class Principal {
     }
 
     private void biblioteca() {
+        List<Track> trackSalvas = deezerService.carregarTracksSalvas();
+        List<Artist> artistasSalvos = deezerService.carregarArtistasSalvos();
+        List<Playlist> playlistsSalvas = deezerService.carregarPlaylistsSalvas();
+
+        System.out.println("Musicas salvas: " + trackSalvas.size() +
+                "   |   " + "Playlists salvas: " + playlistsSalvas.size() +
+                "   |   " + "Artistas salvos: " + artistasSalvos.size());
+        artistasSalvos.forEach(System.out::println);
+        playlistsSalvas.forEach(System.out::println);
+        trackSalvas.forEach(System.out::println);
+
+
     }
 
     private void gerenciarPlaylist() {
@@ -111,6 +123,7 @@ public class Principal {
         System.out.println("\nO que você deseja fazer com a playlist '" + playlistEscolhida.getName() + "'?");
         System.out.println("1 - Adicionar uma música");
         System.out.println("2 - Remover uma música");
+        System.out.println("3 - Apagar playlist");
         System.out.print("Informe a opção: ");
 
         int opcao = scanner.nextInt();
@@ -119,75 +132,87 @@ public class Principal {
         switch (opcao) {
             case 1:
 
-                System.out.println("\nPerfeito! Estas sao suas musicas ainda nao adicionadas na " + playlistEscolhida.getName());
-                List<Track> tracksNaBiblioteca = trackRepository.findAll(); // pega todas tracks salvas no banco
-
-                //filtra para mostrar apenas as que ainda nao foram salvas na playlist
-                List<Track> tracksDisponiveis = tracksNaBiblioteca.stream()
-                                .filter(track -> !playlistEscolhida.getTracksOfPlaylist().contains(track))
-                                .toList();
-
-                if (tracksDisponiveis.isEmpty()) { // caso nao haja nenhuma track disponivel para adicionar
-                    System.out.println("Todas as músicas da sua biblioteca já estão nesta playlist!");
-                    return;
-                }
-                //imprime todas disponiveis
-                tracksDisponiveis.forEach(t -> System.out.println(t.getId() + " - " + t.getName()));
-
-                //VALIDAÇÃO DO ID DA TRACK
-                Optional<Track> trackParaAdicionarOptional = Optional.empty();
-                while(trackParaAdicionarOptional.isEmpty()) {
-                    System.out.print("Digite o ID da música: ");
-                    var idTrackEscolhida = scanner.nextLong();
-                    scanner.nextLine();
-
-                    // procura o ID escolhido nas tracks disponiveis e retorna a track para a variavel optional
-                    trackParaAdicionarOptional = tracksDisponiveis.stream()
-                            .filter(t -> t.getId() == idTrackEscolhida).findFirst();
-
-                    if (trackParaAdicionarOptional.isEmpty()) { //se a variavel ainda estiver vazia, id incorreto
-                        System.out.println("ID de música inválido! Tente novamente.");
-                    }
-                }
-                //service continua a execucao da logica
-                deezerService.adicionarTrackNaPlaylist(playlistEscolhida.getId(), trackParaAdicionarOptional.get().getId());
-
+                adicionarMusicaNaPlaylist(playlistEscolhida);
                 break;
 
             case 2:
-                //lista com as tracks ja salvas na playlist
-                List<Track> tracksDaPlaylist = playlistEscolhida.getTracksOfPlaylist();
 
-                if (tracksDaPlaylist.isEmpty()) {// se estiver vazia, nao tem nada para remover
-                    System.out.println("Esta playlist não contém músicas para remover.");
-                    return;
-                }
+                removerMusicaDaPlaylist(playlistEscolhida);
+                break;
 
-                System.out.println("\nPerfeito! Agora escolha a música para remover: ");
-                //imprime todas tracks da playlist
-                tracksDaPlaylist.forEach(t -> System.out.println(t.getId() + " - " + t.getName()));
+            case 3:
 
-                //VALIDAÇÃO DO ID DA TRACK
-                Optional<Track> trackParaRemoverOptional = Optional.empty();
-                while(trackParaRemoverOptional.isEmpty()) {
-                    System.out.print("Digite o ID da música: ");
-                    var idTrackRemover = scanner.nextLong();
-                    scanner.nextLine();
-                    // mesma logica que o case 1, procura o ID escolhido nas tracks disponiveis e retorna a track para a variavel optional
-                    trackParaRemoverOptional = tracksDaPlaylist.stream()
-                            .filter(track -> track.getId() == idTrackRemover).findFirst();
-
-                    if (trackParaRemoverOptional.isEmpty()) {//se a variavel ainda estiver vazia, id incorreto
-                        System.out.println("ID de música inválido! Tente novamente.");
-                    }
-                }
-                //service continua a execucao da logica
-                deezerService.removerTrackDaPlaylist(playlistEscolhida.getId(), trackParaRemoverOptional.get().getId() );
-
+                deezerService.deletarPlaylist(playlistEscolhida.getId());
                 break;
         }
 
 
+    }
+
+    private void removerMusicaDaPlaylist(Playlist playlistEscolhida) {
+        //lista com as tracks ja salvas na playlist
+        List<Track> tracksDaPlaylist = playlistEscolhida.getTracksOfPlaylist();
+
+        if (tracksDaPlaylist.isEmpty()) {// se estiver vazia, nao tem nada para remover
+            System.out.println("Esta playlist não contém músicas para remover.");
+            return;
+        }
+
+        System.out.println("\nPerfeito! Agora escolha a música para remover: ");
+        //imprime todas tracks da playlist
+        tracksDaPlaylist.forEach(t -> System.out.println(t.getId() + " - " + t.getName()));
+
+        //VALIDAÇÃO DO ID DA TRACK
+        Optional<Track> trackParaRemoverOptional = Optional.empty();
+        while(trackParaRemoverOptional.isEmpty()) {
+            System.out.print("Digite o ID da música: ");
+            var idTrackRemover = scanner.nextLong();
+            scanner.nextLine();
+            // mesma logica que o case 1, procura o ID escolhido nas tracks disponiveis e retorna a track para a variavel optional
+            trackParaRemoverOptional = tracksDaPlaylist.stream()
+                    .filter(track -> track.getId() == idTrackRemover).findFirst();
+
+            if (trackParaRemoverOptional.isEmpty()) {//se a variavel ainda estiver vazia, id incorreto
+                System.out.println("ID de música inválido! Tente novamente.");
+            }
+        }
+        //service continua a execucao da logica
+        deezerService.removerTrackDaPlaylist(playlistEscolhida.getId(), trackParaRemoverOptional.get().getId() );
+    }
+
+    private void adicionarMusicaNaPlaylist(Playlist playlistEscolhida) {
+        System.out.println("\nPerfeito! Estas sao suas musicas ainda nao adicionadas na " + playlistEscolhida.getName());
+        List<Track> tracksNaBiblioteca = trackRepository.findAll(); // pega todas tracks salvas no banco
+
+        //filtra para mostrar apenas as que ainda nao foram salvas na playlist
+        List<Track> tracksDisponiveis = tracksNaBiblioteca.stream()
+                .filter(track -> !playlistEscolhida.getTracksOfPlaylist().contains(track))
+                .toList();
+
+        if (tracksDisponiveis.isEmpty()) { // caso nao haja nenhuma track disponivel para adicionar
+            System.out.println("Todas as músicas da sua biblioteca já estão nesta playlist!");
+            return;
+        }
+        //imprime todas disponiveis
+        tracksDisponiveis.forEach(t -> System.out.println(t.getId() + " - " + t.getName()));
+
+        //VALIDAÇÃO DO ID DA TRACK
+        Optional<Track> trackParaAdicionarOptional = Optional.empty();
+        while(trackParaAdicionarOptional.isEmpty()) {
+            System.out.print("Digite o ID da música: ");
+            var idTrackEscolhida = scanner.nextLong();
+            scanner.nextLine();
+
+            // procura o ID escolhido nas tracks disponiveis e retorna a track para a variavel optional
+            trackParaAdicionarOptional = tracksDisponiveis.stream()
+                    .filter(t -> t.getId() == idTrackEscolhida).findFirst();
+
+            if (trackParaAdicionarOptional.isEmpty()) { //se a variavel ainda estiver vazia, id incorreto
+                System.out.println("ID de música inválido! Tente novamente.");
+            }
+        }
+        //service continua a execucao da logica
+        deezerService.adicionarTrackNaPlaylist(playlistEscolhida.getId(), trackParaAdicionarOptional.get().getId());
     }
 
     private void novaPlaylist() {
@@ -196,7 +221,6 @@ public class Principal {
         try {
             //service cuida da logica de instanciar playlist e salvar no banco
             deezerService.criarPlaylist(nomePlaylist);
-            System.out.println("Playlist " + nomePlaylist + " criada com sucesso!");
         } catch (IllegalArgumentException e) {
             System.out.println("Erro: " + e.getMessage());
         }

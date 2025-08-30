@@ -122,7 +122,25 @@ public class ConsultaDeezerService {
 
         Playlist novaPlaylist = new Playlist();
         novaPlaylist.setName(nome);
-        playlistRepository.save(novaPlaylist);
+        Optional<Playlist> verificarDuplicata = playlistRepository.findByNameIgnoreCase(nome);
+
+        if (verificarDuplicata.isEmpty()) {
+            playlistRepository.save(novaPlaylist);
+            System.out.println("Playlist " + nome + " criada com sucesso!");
+        } else {
+            System.out.println("Ja existe uma playlist salva com este nome");
+        }
+
+    }
+
+    public void deletarPlaylist(Long playlistId) {
+
+        if (playlistRepository.existsById(playlistId)) {
+            playlistRepository.deleteById(playlistId);
+            System.out.println("Playlist deletada com sucesso!");
+        } else {
+            System.out.println("Playlist nao encontrada");
+        }
     }
 
     //ADICIONA UMA TRACK JA EXISTENTE A UMA PLAYLIST JA EXISTENTE
@@ -143,10 +161,11 @@ public class ConsultaDeezerService {
             System.out.println("Id invalido");
         }
     }
+
     //REMOVE UMA TRACK JA EXISTENTE DE UMA PLAYLIST JA EXISTENTE
-    public void removerTrackDaPlaylist(long idPlaylistEscolhida, long idTrackRemover) {
+    public void removerTrackDaPlaylist(long playlistId, long idTrackRemover) {
         //instancia optionals que buscam do banco de dados
-        Optional<Playlist> playlistOptional = playlistRepository.findById(idPlaylistEscolhida);
+        Optional<Playlist> playlistOptional = playlistRepository.findById(playlistId);
         Optional<Track> trackOptional = trackRepository.findById(idTrackRemover);
 
         // desempacota se optionals existirem
@@ -161,4 +180,20 @@ public class ConsultaDeezerService {
             System.out.println("Id invalido");
         }
     }
+
+    public List<Track> carregarTracksSalvas() {
+        return trackRepository.findAll();
+    }
+
+    public List<Artist> carregarArtistasSalvos() {
+        return artistRepository.findAll();
+    }
+
+    public List<Playlist> carregarPlaylistsSalvas() {
+        return playlistRepository.findAll();
+    }
+
+
+
+
 }

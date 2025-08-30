@@ -80,6 +80,12 @@ public class Track {
         this.releaseDate = releaseDate;
     }
 
+    @Override
+    public String toString() {
+        String nomeArtista = (artist != null) ? artist.getName() : "Desconhecido";
+        return "Música: " + name + " | Artista: " + nomeArtista + " | Álbum: " + album;
+    }
+
 
     @Override // garantir a igualdade correta de objetos
     public boolean equals(Object o) {
@@ -92,4 +98,6 @@ public class Track {
     public int hashCode() {
         return Objects.hashCode(id);
     }
+
+
 }

@@ -53,6 +53,11 @@ public class Playlist {
         this.id = id;
     }
 
+    @Override
+    public String toString() {
+        return "Playlist: " + name + " (" + getTracksOfPlaylist().size() + " músicas)";
+    }
+
     @Override// garantir a igualdade correta de objetos
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
