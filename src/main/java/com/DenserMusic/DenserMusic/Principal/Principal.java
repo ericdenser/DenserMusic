@@ -249,10 +249,14 @@ public class Principal {
             int escolha = -1;
 
             // VALIDACAO DE ENTRADA
-            while (escolha <= 0 || escolha >= tracksEncontradas.size()) {
+            while (escolha < 0 || escolha > tracksEncontradas.size()) {
                 System.out.println("Digite sua opcao: ");
                 escolha = scanner.nextInt();
                 scanner.nextLine();
+
+                if (escolha == 0) {
+                    break;
+                }
 
                 if (escolha > 0 && escolha <= tracksEncontradas.size()) {
                     //salva track especifica com base no indice da lista de tracks encontradas

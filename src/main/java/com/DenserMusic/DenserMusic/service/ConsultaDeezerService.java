@@ -88,21 +88,29 @@ public class ConsultaDeezerService {
         }
 
         //agora com o artista salvo, podemos salvar a track
-        DeezerTrack trackDetailsDto = deezerClient.getTrackById(trackEscolhida.id()); // GET dos detalhes da track
 
+        long deezerTrackId = trackEscolhida.id();
+
+        if (trackRepository.existsByDeezerId(deezerTrackId)) {
+            System.out.println("Esta música já está salva na sua biblioteca.");
+            return; // encerra o método
+        }
+
+        DeezerTrack trackDetailsDto = deezerClient.getTrackById(trackEscolhida.id());
         Track newTrack = new Track(); // instancia a nova track
 
         //set para todos atributos da track
         newTrack.setName(trackDetailsDto.title());
         newTrack.setArtist(artistToSave);
+        newTrack.setDeezerId(trackDetailsDto.deezerId());
         newTrack.setDurationInSeconds(trackDetailsDto.duration());
         newTrack.setAlbum(trackDetailsDto.album().title());
         newTrack.setRank(trackDetailsDto.rank());
         newTrack.setReleaseDate(LocalDate.parse(trackDetailsDto.releaseDate()));
-
         trackRepository.save(newTrack); // salva no banco
 
         System.out.println("Música '" + newTrack.getName() + "' salva com sucesso!");
+
     }
 
     // RETORNA LISTA DE TODAS TRACKS COM NOME CORRESPONDENTE
@@ -192,8 +200,5 @@ public class ConsultaDeezerService {
     public List<Playlist> carregarPlaylistsSalvas() {
         return playlistRepository.findAll();
     }
-
-
-
 
 }

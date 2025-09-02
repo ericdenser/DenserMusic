@@ -13,6 +13,9 @@ public class Track {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(unique = true)
+    private Long deezerId;
+
     @ManyToOne //varias tracks para um artista
     private Artist artist;
 
@@ -64,6 +67,12 @@ public class Track {
         this.name = name;
     }
 
+    public Long getDeezerId() {return deezerId;}
+
+    public void setDeezerId(long deezerId) {
+        this.deezerId = deezerId;
+    }
+
     public Integer getRank() {
         return rank;
     }
@@ -99,5 +108,6 @@ public class Track {
         return Objects.hashCode(id);
     }
 
-
 }
+
+
