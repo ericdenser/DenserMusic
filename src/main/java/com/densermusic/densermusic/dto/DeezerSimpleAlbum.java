@@ -1,8 +1,7 @@
-package com.DenserMusic.DenserMusic.dto;
-
+package com.densermusic.densermusic.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record DeezerSimpleArtist(String name) {
+public record DeezerSimpleAlbum(String title) {
 }

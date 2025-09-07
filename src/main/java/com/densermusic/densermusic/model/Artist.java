@@ -1,6 +1,7 @@
-package com.DenserMusic.DenserMusic.model;
+package com.densermusic.densermusic.model;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.NaturalId;
 
 import java.util.Objects;
 
@@ -12,6 +13,10 @@ public class Artist {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NaturalId
+    @Column(unique = true, nullable = false)
+    private Long deezerId;
+
     @Column(unique = true)
     private String name;
 
@@ -20,10 +25,11 @@ public class Artist {
 
     public Artist() {}
 
-    public Artist(String name, String urlImage, Integer totalDeezerFansFans) {
+    public Artist(String name, String urlImage, Integer totalDeezerFansFans, Long deezerId) {
         this.name = name;
         this.urlImage = urlImage;
         this.totalDeezerFans = totalDeezerFansFans;
+        this.deezerId = deezerId;
     }
 
     public String getName() {
@@ -48,6 +54,14 @@ public class Artist {
 
     public void setTotalDeezerFans(Integer totalDeezerFans) {
         this.totalDeezerFans = totalDeezerFans;
+    }
+
+    public Long getDeezerId() {
+        return deezerId;
+    }
+
+    public void setDeezerId(Long deezerId) {
+        this.deezerId = deezerId;
     }
 
     @Override

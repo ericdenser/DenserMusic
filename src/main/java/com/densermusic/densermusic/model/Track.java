@@ -1,6 +1,7 @@
-package com.DenserMusic.DenserMusic.model;
+package com.densermusic.densermusic.model;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.NaturalId;
 
 import java.time.LocalDate;
 import java.util.Objects;
@@ -13,7 +14,8 @@ public class Track {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true)
+    @NaturalId
+    @Column(unique = true, nullable = false)
     private Long deezerId;
 
     @ManyToOne //varias tracks para um artista
@@ -67,9 +69,9 @@ public class Track {
         this.name = name;
     }
 
-    public Long getDeezerId() {return deezerId;}
+    public long getDeezerId() {return deezerId;}
 
-    public void setDeezerId(long deezerId) {
+    public void setDeezerId(Long deezerId) {
         this.deezerId = deezerId;
     }
 

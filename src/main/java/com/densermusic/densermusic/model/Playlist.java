@@ -1,4 +1,4 @@
-package com.DenserMusic.DenserMusic.model;
+package com.densermusic.densermusic.model;
 
 
 import jakarta.persistence.*;

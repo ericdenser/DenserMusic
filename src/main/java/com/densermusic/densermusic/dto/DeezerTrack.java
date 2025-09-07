@@ -1,4 +1,4 @@
-package com.DenserMusic.DenserMusic.dto;
+package com.densermusic.densermusic.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -8,10 +8,10 @@ public record DeezerTrack(
         String title,
         int duration,
         int rank,
-        @JsonProperty("id") long deezerId,
+        @JsonProperty("id") Long id,
         @JsonProperty("release_date") String releaseDate,
         DeezerSimpleAlbum album,
-        DeezerSimpleArtist artist
+        DeezerArtist artist
 ){
 
 }

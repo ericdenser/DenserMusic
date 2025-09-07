@@ -1,14 +1,15 @@
-package com.DenserMusic.DenserMusic.Principal;
+package com.densermusic.densermusic.Principal;
 
-import com.DenserMusic.DenserMusic.dto.DeezerTrackSearchResult;
-import com.DenserMusic.DenserMusic.model.Artist;
-import com.DenserMusic.DenserMusic.model.Playlist;
-import com.DenserMusic.DenserMusic.model.Track;
-import com.DenserMusic.DenserMusic.repository.ArtistRepository;
-import com.DenserMusic.DenserMusic.repository.TrackRepository;
-import com.DenserMusic.DenserMusic.repository.PlaylistRepository;
-import com.DenserMusic.DenserMusic.service.ConsultaDeezerService;
-import org.springframework.dao.DataIntegrityViolationException;
+import com.densermusic.densermusic.dto.DeezerTrackSearchResult;
+import com.densermusic.densermusic.model.Artist;
+import com.densermusic.densermusic.model.Playlist;
+import com.densermusic.densermusic.model.Track;
+import com.densermusic.densermusic.repository.ArtistRepository;
+import com.densermusic.densermusic.repository.TrackRepository;
+import com.densermusic.densermusic.repository.PlaylistRepository;
+import com.densermusic.densermusic.service.ArtistService;
+import com.densermusic.densermusic.service.PlaylistService;
+import com.densermusic.densermusic.service.TrackService;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,16 +18,20 @@ import java.util.Scanner;
 public class Principal {
 
     private final Scanner scanner = new Scanner(System.in);
-    private final ConsultaDeezerService deezerService;
     private final ArtistRepository artistRepository;
     private final TrackRepository trackRepository;
     private final PlaylistRepository playlistRepository;
+    private final ArtistService artistService;
+    private final PlaylistService playlistService;
+    private final TrackService trackService;
 
-    public Principal(ConsultaDeezerService deezerService, ArtistRepository artistRepository, TrackRepository trackRepository, PlaylistRepository playlistRepository) {
-        this.deezerService = deezerService;
+    public Principal(ArtistRepository artistRepository, TrackRepository trackRepository, PlaylistRepository playlistRepository, ArtistService artistService, PlaylistService playlistService, TrackService trackService) {
         this.artistRepository = artistRepository;
         this.trackRepository = trackRepository;
         this.playlistRepository = playlistRepository;
+        this.artistService = artistService;
+        this.playlistService = playlistService;
+        this.trackService = trackService;
     }
 
     public void exibeMenu() {
@@ -78,9 +83,9 @@ public class Principal {
     }
 
     private void biblioteca() {
-        List<Track> trackSalvas = deezerService.carregarTracksSalvas();
-        List<Artist> artistasSalvos = deezerService.carregarArtistasSalvos();
-        List<Playlist> playlistsSalvas = deezerService.carregarPlaylistsSalvas();
+        List<Track> trackSalvas = trackService.carregarTracksSalvas();
+        List<Artist> artistasSalvos = artistService.carregarArtistasSalvos();
+        List<Playlist> playlistsSalvas = playlistService.carregarPlaylistsSalvas();
 
         System.out.println("Musicas salvas: " + trackSalvas.size() +
                 "   |   " + "Playlists salvas: " + playlistsSalvas.size() +
@@ -93,7 +98,7 @@ public class Principal {
     }
 
     private void gerenciarPlaylist() {
-        var playlists = playlistRepository.findAll(); //pega todas as playlists salvas no banco de dados
+        var playlists = playlistService.carregarPlaylistsSalvas(); //pega todas as playlists salvas no banco de dados
 
         if (playlists.isEmpty()) {//se vazio, nao conseguiu encontrar nenhuma salva
             System.out.println("Nenhuma playlist criada ainda. Crie uma primeiro.");
@@ -112,8 +117,8 @@ public class Principal {
             var idPlaylistEscolhida = scanner.nextLong();
             scanner.nextLine();
 
-            playlistOptional = playlistRepository.findById(idPlaylistEscolhida); // Tenta buscar no banco
-            if (playlistOptional.isEmpty()) { // se nao encontrar, id nao existe
+            playlistOptional = playlistService.buscarPlaylist(idPlaylistEscolhida); // Tenta buscar no banco
+            if (playlistOptional.isEmpty()) { // se nao encontrar, id da playlist errado (nao existe)
                 System.out.println("ID de playlist inválido! Tente novamente.");
             }
         }
@@ -142,7 +147,7 @@ public class Principal {
 
             case 3:
 
-                deezerService.deletarPlaylist(playlistEscolhida.getId());
+                playlistService.deletarPlaylist(playlistEscolhida.getId());
                 break;
         }
 
@@ -172,17 +177,17 @@ public class Principal {
             trackParaRemoverOptional = tracksDaPlaylist.stream()
                     .filter(track -> track.getId() == idTrackRemover).findFirst();
 
-            if (trackParaRemoverOptional.isEmpty()) {//se a variavel ainda estiver vazia, id incorreto
+            if (trackParaRemoverOptional.isEmpty()) {//se a variavel ainda estiver vazia, deezerId incorreto
                 System.out.println("ID de música inválido! Tente novamente.");
             }
         }
         //service continua a execucao da logica
-        deezerService.removerTrackDaPlaylist(playlistEscolhida.getId(), trackParaRemoverOptional.get().getId() );
+        playlistService.removerTrackDaPlaylist(playlistEscolhida.getId(), trackParaRemoverOptional.get().getId() );
     }
 
     private void adicionarMusicaNaPlaylist(Playlist playlistEscolhida) {
         System.out.println("\nPerfeito! Estas sao suas musicas ainda nao adicionadas na " + playlistEscolhida.getName());
-        List<Track> tracksNaBiblioteca = trackRepository.findAll(); // pega todas tracks salvas no banco
+        List<Track> tracksNaBiblioteca = trackService.carregarTracksSalvas(); // pega todas tracks salvas no banco
 
         //filtra para mostrar apenas as que ainda nao foram salvas na playlist
         List<Track> tracksDisponiveis = tracksNaBiblioteca.stream()
@@ -207,12 +212,12 @@ public class Principal {
             trackParaAdicionarOptional = tracksDisponiveis.stream()
                     .filter(t -> t.getId() == idTrackEscolhida).findFirst();
 
-            if (trackParaAdicionarOptional.isEmpty()) { //se a variavel ainda estiver vazia, id incorreto
+            if (trackParaAdicionarOptional.isEmpty()) { //se a variavel ainda estiver vazia, deezerId incorreto
                 System.out.println("ID de música inválido! Tente novamente.");
             }
         }
         //service continua a execucao da logica
-        deezerService.adicionarTrackNaPlaylist(playlistEscolhida.getId(), trackParaAdicionarOptional.get().getId());
+        playlistService.adicionarTrackNaPlaylist(playlistEscolhida.getId(), trackParaAdicionarOptional.get().getId());
     }
 
     private void novaPlaylist() {
@@ -220,7 +225,7 @@ public class Principal {
         String nomePlaylist = scanner.nextLine();
         try {
             //service cuida da logica de instanciar playlist e salvar no banco
-            deezerService.criarPlaylist(nomePlaylist);
+            playlistService.criarPlaylist(nomePlaylist);
         } catch (IllegalArgumentException e) {
             System.out.println("Erro: " + e.getMessage());
         }
@@ -231,7 +236,7 @@ public class Principal {
         var trechoDaTrack = scanner.nextLine();
         try {
             //lista de todas tracks com o trecho correspondente
-            List<DeezerTrackSearchResult> tracksEncontradas = deezerService.buscaTracksPorNome(trechoDaTrack);
+            List<DeezerTrackSearchResult> tracksEncontradas = trackService.buscaTracksPorNome(trechoDaTrack);
             if (tracksEncontradas.isEmpty()) {
                 System.out.println("Nenhuma música encontrada.");
                 return;
@@ -246,28 +251,26 @@ public class Principal {
 
             System.out.println("0 - Cancelar");
 
-            int escolha = -1;
-
             // VALIDACAO DE ENTRADA
-            while (escolha < 0 || escolha > tracksEncontradas.size()) {
+            while (true) {
                 System.out.println("Digite sua opcao: ");
-                escolha = scanner.nextInt();
+                int escolha = scanner.nextInt();
                 scanner.nextLine();
 
                 if (escolha == 0) {
                     break;
                 }
-
-                if (escolha > 0 && escolha <= tracksEncontradas.size()) {
+                if (escolha >= 1 && escolha <= tracksEncontradas.size()) {
                     //salva track especifica com base no indice da lista de tracks encontradas
                     DeezerTrackSearchResult trackEscolhida = tracksEncontradas.get(escolha - 1);
 
                     //service continua a execucao da logica
-                    deezerService.buscaESalvaTrack(trackEscolhida);
+                    System.out.println("Enviando para service");
+                    trackService.buscaESalvaTrack(trackEscolhida);
 
-                } else {
-                    System.out.println("Escolha inválida, tente novamente!");
+                    break;
                 }
+                System.out.println("Escolha inválida, tente novamente!");
             }
         } catch (Exception e) {
             System.out.println("Detalhe técnico: " + e.getMessage());
@@ -278,8 +281,8 @@ public class Principal {
         System.out.println("Informe o nome do artista que deseja buscar: ");
         var nomeDoArtista = scanner.nextLine();
 
-        //lista de todos artistas com nome correspondente
-        List<Artist> artistasEncontrados = deezerService.buscaArtistasPorNome(nomeDoArtista);
+        //lista de todos os artistas com nome correspondente
+        List<Artist> artistasEncontrados = artistService.buscaArtistasPorNome(nomeDoArtista);
 
 
         if (artistasEncontrados.isEmpty()) {//lista vazia, nenhum retorno
@@ -288,7 +291,7 @@ public class Principal {
         }
 
         System.out.println("Foram encontrados " + artistasEncontrados.size() + " artistas. Qual deles você deseja salvar?");
-        //imprime id e nome de todos artistas encontrados
+        //imprime deezerId e nome de todos artistas encontrados
         for (int i = 0; i < artistasEncontrados.size(); i++) {
             System.out.println((1 + i) + " - " + artistasEncontrados.get(i).getName());
         }
@@ -302,22 +305,7 @@ public class Principal {
         if (escolha > 0 && escolha <= artistasEncontrados.size()) {
             //salva o artista especifico com base no indice da lista de todos artistas encontrados
             Artist artistaEscolhido = artistasEncontrados.get(escolha - 1);
-
-            //optional para tentar buscar no banco
-            Optional<Artist> artistaNoBanco = artistRepository.findByNameIgnoreCase(artistaEscolhido.getName());
-            if(artistaNoBanco.isPresent()) { // se ja estiver salvo
-                System.out.println("\n" + artistaEscolhido.getName() + " já está salvo na sua biblioteca!");
-                System.out.println("INFORMAÇÕES DO ARTISTA:");
-                System.out.println(artistaNoBanco.get());
-            } else {
-                // caso ainda nao tenha sido salvo
-                try {
-                    artistRepository.save(artistaEscolhido);//salva no banco
-                    System.out.println("Artista salvo no banco de dados com sucesso!");
-                } catch (DataIntegrityViolationException e) { // tratamento de erro
-                    System.out.println("ERRO: " + e.getMessage());
-                }
-            }
+            Artist artist = artistService.findOrCreateArtist(artistaEscolhido.getDeezerId());
         } else if (escolha == 0){
             System.out.println("Operação cancelada.");
         } else {

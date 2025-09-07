@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.DenserMusic</groupId>
-	<artifactId>DenserMusic</artifactId>
+	<artifactId>densermusic</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>DenserMusic</name>
 	<description>Personal Project of a App Music</description>
