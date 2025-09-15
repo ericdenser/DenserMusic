@@ -1,5 +1,6 @@
 package com.densermusic.densermusic.model;
 
+import com.densermusic.densermusic.dto.DeezerTrackDTO;
 import jakarta.persistence.*;
 import org.hibernate.annotations.NaturalId;
 
@@ -28,6 +29,22 @@ public class Track {
     private LocalDate releaseDate;
 
     public Track() {}
+
+
+    //metodo de fabrica estatico mais flexivel e limpo que usar construtor padrao - Joshua Bloch
+    public static Track of(DeezerTrackDTO trackDetailsDto, Artist artist) {
+        Track newTrack = new Track();
+
+        newTrack.setName(trackDetailsDto.title());
+        newTrack.setArtist(artist); // Usa o objeto Artist que já garantimos que existe
+        newTrack.setDeezerId(trackDetailsDto.deezerId());
+        newTrack.setDurationInSeconds(trackDetailsDto.duration());
+        newTrack.setAlbum(trackDetailsDto.album().title());
+        newTrack.setRank(trackDetailsDto.rank());
+        newTrack.setReleaseDate(LocalDate.parse(trackDetailsDto.releaseDate()));
+
+        return newTrack;
+    }
 
     public String getAlbum() {
         return album;

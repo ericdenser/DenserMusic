@@ -5,9 +5,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record DeezerArtist(String name,
-                           String picture,
-                           @JsonProperty("id") Long id,
-                           @JsonAlias("nb_fan") Integer totalFas) {
+public record DeezerArtistDTO(String name,
+                              String picture,
+                              @JsonProperty("id") Long deezerId,
+                              @JsonAlias("nb_fan") Integer totalFas) {
 
 }

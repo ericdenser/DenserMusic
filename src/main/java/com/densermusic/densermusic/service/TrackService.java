@@ -1,15 +1,15 @@
 package com.densermusic.densermusic.service;
 
 import com.densermusic.densermusic.client.DeezerClient;
-import com.densermusic.densermusic.dto.DeezerTrack;
-import com.densermusic.densermusic.dto.DeezerTrackSearchResponse;
-import com.densermusic.densermusic.dto.DeezerTrackSearchResult;
+import com.densermusic.densermusic.dto.DeezerTrackDTO;
+import com.densermusic.densermusic.dto.DeezerTrackSearchResponseDTO;
+import com.densermusic.densermusic.dto.DeezerTrackSearchResultDTO;
+import com.densermusic.densermusic.exception.BusinessException;
 import com.densermusic.densermusic.model.Artist;
 import com.densermusic.densermusic.model.Track;
 import com.densermusic.densermusic.repository.TrackRepository;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -27,44 +27,44 @@ public class TrackService {
         this.artistService = artistService;
     }
 
-
-
-    //SALVA TRACK NO BANCO (E ARTISTA SE NECESSARIO)
-    public Track buscaESalvaTrack(DeezerTrackSearchResult trackEscolhida) {
-
-        Long trackArtistDeezerId = trackEscolhida.artist().id();// variavel com o id da track
-
-        Artist artist = artistService.findOrCreateArtist(trackArtistDeezerId);
-
-        //agora com o artista salvo, podemos salvar a track
-
-        Optional<Track> trackOptional = trackRepository.findByDeezerId(trackEscolhida.id());
-        if (trackOptional.isPresent()) {
-            throw new IllegalArgumentException("A musica '" + trackEscolhida.title() + "' já está salvo na sua biblioteca."); // encerra o método
+    public Track save(Track track) {
+        if (trackRepository.findByDeezerId(track.getDeezerId()).isPresent()) {
+            throw new BusinessException("Música com Deezer ID " + track.getDeezerId() + " já existe.");
         }
+        return trackRepository.save(track);
+    }
 
-        DeezerTrack trackDetailsDto = deezerClient.getTrackById(trackEscolhida.id());
-        Track newTrack = new Track(); // instancia a nova track
+    private Optional<Track> fetchTrackFromDeezerApi(Long trackDeezerId, Long artistDeezerId) {
 
-        //set para todos atributos da track
-        newTrack.setName(trackDetailsDto.title());
-        newTrack.setArtist(artist);
-        newTrack.setDeezerId(trackDetailsDto.id());
-        newTrack.setDurationInSeconds(trackDetailsDto.duration());
-        newTrack.setAlbum(trackDetailsDto.album().title());
-        newTrack.setRank(trackDetailsDto.rank());
-        newTrack.setReleaseDate(LocalDate.parse(trackDetailsDto.releaseDate()));
-        trackRepository.save(newTrack); // salva no banco
+        DeezerTrackDTO trackDetailsDto = deezerClient.getTrackById(trackDeezerId);
 
-        System.out.println("Música '" + newTrack.getName() + "' salva com sucesso!");
+        Artist artist = artistService.findOrCreateArtist(artistDeezerId);
 
-        return newTrack;
+        return Optional.of(Track.of(trackDetailsDto, artist));
+    }
+
+    public Track findOrCreateTrack(DeezerTrackSearchResultDTO trackSearchResult) {
+
+        Long artistDeezerId = trackSearchResult.artist().deezerId();// variavel com o id do artista da track
+
+        Long trackDeezerId = trackSearchResult.deezerId(); // variavel com id da track
+
+        return trackRepository.findByDeezerId(trackDeezerId)
+                .orElseGet(() -> {
+
+                    // nao salvo, procura na api
+                    Optional<Track> trackOptional = fetchTrackFromDeezerApi(trackDeezerId, artistDeezerId );
+
+                    return trackOptional.map(this::save)
+                            .orElseThrow(() -> new BusinessException("Não foi possível encontrar a "
+                                    + "música no Deezer com o ID: " + trackDeezerId));
+                });
     }
 
     // RETORNA LISTA DE TODAS TRACKS COM NOME CORRESPONDENTE
-    public List<DeezerTrackSearchResult> buscaTracksPorNome(String trackName) {
-        DeezerTrackSearchResponse response = deezerClient.getTrackByName(trackName);
-        if (response != null && !response.data().isEmpty()) {
+    public List<DeezerTrackSearchResultDTO> searchTracksByName(String trackName) {
+        DeezerTrackSearchResponseDTO response = deezerClient.getTrackByName(trackName);
+        if (response != null && response.data() != null) {
             return response.data();
         }
         return Collections.emptyList();
@@ -81,5 +81,6 @@ public class TrackService {
     public List<Track> carregarTracksSalvas() {
         return trackRepository.findAll();
     }
+
 }
 

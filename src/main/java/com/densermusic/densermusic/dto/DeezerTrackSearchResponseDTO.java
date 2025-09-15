@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record DeezerTrackSearchResponse(
-        List<DeezerTrackSearchResult> data
+public record DeezerTrackSearchResponseDTO(
+        List<DeezerTrackSearchResultDTO> data
 ) {
 }

@@ -1,8 +1,9 @@
 package com.densermusic.densermusic.service;
 
 import com.densermusic.densermusic.client.DeezerClient;
-import com.densermusic.densermusic.dto.DeezerArtist;
-import com.densermusic.densermusic.dto.DeezerArtistSearchResponse;
+import com.densermusic.densermusic.dto.DeezerArtistDTO;
+import com.densermusic.densermusic.dto.DeezerArtistSearchResponseDTO;
+import com.densermusic.densermusic.exception.BusinessException;
 import com.densermusic.densermusic.model.Artist;
 import com.densermusic.densermusic.repository.ArtistRepository;
 import org.springframework.stereotype.Service;
@@ -10,7 +11,6 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class ArtistService {
@@ -24,30 +24,19 @@ public class ArtistService {
     }
 
     //SALVA UM ARTISTA NO BANCO (getFirst)
-    public Optional<Artist> buscaUmArtista(Long artistDeezerId) {
-        DeezerArtist deezerArtistDto = deezerClient.searchArtistById(artistDeezerId);
+    private Optional<Artist> fetchArtistFromDeezerApi(Long artistDeezerId) {
+        DeezerArtistDTO deezerArtistDto = deezerClient.searchArtistById(artistDeezerId);
 
         return Optional.ofNullable(deezerArtistDto)
-                .map(dto -> new Artist(
-                        dto.name(),
-                        dto.picture(),
-                        dto.totalFas(),
-                        dto.id()
-                ));
+                .map(Artist::of);
     }
 
     //RETORNA LISTA DE TODOS OS ARTISTAS COM O NOME CORRESPONDENTE
-    public List<Artist> buscaArtistasPorNome(String nome) {
-        DeezerArtistSearchResponse response = deezerClient.searchArtistByName(nome);
+    public List<DeezerArtistDTO> searchArtistsByName(String nome) {
+        DeezerArtistSearchResponseDTO response = deezerClient.searchArtistByName(nome);
 
-        if (response != null && !response.data().isEmpty()) {
-            return response.data().stream()
-                    .map(deezerArtist -> new Artist(
-                            deezerArtist.name(),
-                            deezerArtist.picture(),
-                            deezerArtist.totalFas(),
-                            deezerArtist.id()))
-                    .collect(Collectors.toList());
+        if (response != null && response.data() != null) {
+            return response.data();
         }
         return Collections.emptyList();
     }
@@ -61,24 +50,25 @@ public class ArtistService {
     }
 
     public Artist save(Artist artist) {
+        if (artistRepository.findByDeezerId(artist.getDeezerId()).isPresent()) {
+            throw new BusinessException("Artista com Deezer ID " + artist.getDeezerId() + " já existe.");
+        }
         return artistRepository.save(artist);
     }
 
     public Artist findOrCreateArtist(Long artistDeezerId) {
 
-        //procura se ja esta salvo
-        Optional<Artist> dbArtistOptional = artistRepository.findByDeezerId(artistDeezerId);
+        //procura se já está salvo
+        return artistRepository.findByDeezerId(artistDeezerId)
+                .orElseGet(() -> {
 
-        if (dbArtistOptional.isPresent()) {
-            System.out.println("Ja salvo no banco!");
-            return dbArtistOptional.get(); // ja temos, retorna.
-        }
+                    // nao salvo, procura na api
+                    Optional<Artist> artistOptional = fetchArtistFromDeezerApi(artistDeezerId);
 
-        //caso nao esteja salvo ainda
-        Optional<Artist> artistOptional = buscaUmArtista(artistDeezerId);
-        return artistOptional.map(artistRepository::save).orElseThrow(() ->// se o Optional estiver vazio, lança uma exceção.
-                new IllegalArgumentException("Não foi possível encontrar o artista no Deezer com o ID: " + artistDeezerId)
-        );
+                    return artistOptional.map(this::save)
+                            .orElseThrow(() -> new BusinessException("Não foi possível encontrar o " +
+                                    "artista no Deezer com o ID: " + artistDeezerId));
+                });
     }
 
     public List<Artist> carregarArtistasSalvos() {

@@ -1,5 +1,6 @@
 package com.densermusic.densermusic.model;
 
+import com.densermusic.densermusic.dto.DeezerArtistDTO;
 import jakarta.persistence.*;
 import org.hibernate.annotations.NaturalId;
 
@@ -30,6 +31,17 @@ public class Artist {
         this.urlImage = urlImage;
         this.totalDeezerFans = totalDeezerFansFans;
         this.deezerId = deezerId;
+    }
+
+    public static Artist of(DeezerArtistDTO deezerArtistDTO) {
+        Artist newArtist = new Artist();
+
+        newArtist.setName(deezerArtistDTO.name());
+        newArtist.setUrlImage(deezerArtistDTO.picture()); // Usa o objeto Artist que já garantimos que existe
+        newArtist.setDeezerId(deezerArtistDTO.deezerId());
+        newArtist.setTotalDeezerFans(deezerArtistDTO.totalFas());
+
+        return newArtist;
     }
 
     public String getName() {
