@@ -1,10 +1,11 @@
 package com.densermusic.densermusic.controller;
 
-import com.densermusic.densermusic.dto.CreateTrackRequestDTO;
+import com.densermusic.densermusic.dto.trackDTO.CreateTrackRequestDTO;
 import com.densermusic.densermusic.dto.CreationResultDTO;
-import com.densermusic.densermusic.dto.DeezerTrackSearchResultDTO;
+import com.densermusic.densermusic.dto.trackDTO.DeezerTrackSearchResultDTO;
 import com.densermusic.densermusic.model.Track;
 import com.densermusic.densermusic.service.TrackService;
+import com.densermusic.densermusic.service.TrackServiceImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +26,11 @@ public class TrackController {
     @GetMapping("/search")
     public List<DeezerTrackSearchResultDTO> searchTracksByName(@RequestParam("name") String name) {
         return trackService.searchTracksByName(name);
+    }
+
+    @GetMapping
+    public List<Track> loadAllSavedTracks() {
+        return trackService.carregarTracksSalvas();
     }
 
     @GetMapping("/{id}")

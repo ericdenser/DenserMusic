@@ -1,9 +1,9 @@
 package com.densermusic.densermusic.client;
 
-import com.densermusic.densermusic.dto.DeezerArtistDTO;
-import com.densermusic.densermusic.dto.DeezerArtistSearchResponseDTO;
-import com.densermusic.densermusic.dto.DeezerTrackDTO;
-import com.densermusic.densermusic.dto.DeezerTrackSearchResponseDTO;
+import com.densermusic.densermusic.dto.artistDTO.DeezerArtistDTO;
+import com.densermusic.densermusic.dto.artistDTO.DeezerArtistSearchResponseDTO;
+import com.densermusic.densermusic.dto.trackDTO.DeezerTrackDTO;
+import com.densermusic.densermusic.dto.trackDTO.DeezerTrackSearchResponseDTO;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.service.annotation.GetExchange;

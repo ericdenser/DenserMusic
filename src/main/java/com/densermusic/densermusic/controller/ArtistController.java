@@ -1,11 +1,10 @@
 package com.densermusic.densermusic.controller;
 
 
-import com.densermusic.densermusic.dto.CreateArtistRequestDTO;
+import com.densermusic.densermusic.dto.artistDTO.CreateArtistRequestDTO;
 import com.densermusic.densermusic.dto.CreationResultDTO;
-import com.densermusic.densermusic.dto.DeezerArtistDTO;
+import com.densermusic.densermusic.dto.artistDTO.DeezerArtistDTO;
 import com.densermusic.densermusic.model.Artist;
-import com.densermusic.densermusic.model.Track;
 import com.densermusic.densermusic.service.ArtistService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +22,11 @@ public class ArtistController {
 
     public ArtistController(ArtistService artistService) {
         this.artistService = artistService;
+    }
+
+    @GetMapping
+    public List<Artist> loadSavedArtists() {
+        return artistService.carregarArtistasSalvos();
     }
 
     @GetMapping("/search")

@@ -1,6 +1,6 @@
 package com.densermusic.densermusic.model;
 
-import com.densermusic.densermusic.dto.DeezerArtistDTO;
+import com.densermusic.densermusic.dto.artistDTO.DeezerArtistDTO;
 import jakarta.persistence.*;
 import org.hibernate.annotations.NaturalId;
 
@@ -16,7 +16,7 @@ public class Artist {
 
     @NaturalId
     @Column(unique = true, nullable = false)
-    private Long deezerId;
+    private Long apiId;
 
     @Column(unique = true)
     private String name;
@@ -30,7 +30,7 @@ public class Artist {
         this.name = name;
         this.urlImage = urlImage;
         this.totalDeezerFans = totalDeezerFansFans;
-        this.deezerId = deezerId;
+        this.apiId = deezerId;
     }
 
     public static Artist of(DeezerArtistDTO deezerArtistDTO) {
@@ -38,7 +38,7 @@ public class Artist {
 
         newArtist.setName(deezerArtistDTO.name());
         newArtist.setUrlImage(deezerArtistDTO.picture()); // Usa o objeto Artist que já garantimos que existe
-        newArtist.setDeezerId(deezerArtistDTO.deezerId());
+        newArtist.setApiId(deezerArtistDTO.apiId());
         newArtist.setTotalDeezerFans(deezerArtistDTO.totalFas());
 
         return newArtist;
@@ -68,12 +68,12 @@ public class Artist {
         this.totalDeezerFans = totalDeezerFans;
     }
 
-    public Long getDeezerId() {
-        return deezerId;
+    public Long getApiId() {
+        return apiId;
     }
 
-    public void setDeezerId(Long deezerId) {
-        this.deezerId = deezerId;
+    public void setApiId(Long apiId) {
+        this.apiId = apiId;
     }
 
     @Override

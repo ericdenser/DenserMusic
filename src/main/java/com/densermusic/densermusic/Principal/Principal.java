@@ -1,15 +1,14 @@
 package com.densermusic.densermusic.Principal;
 
-import com.densermusic.densermusic.dto.DeezerArtistDTO;
-import com.densermusic.densermusic.dto.DeezerTrackSearchResultDTO;
+import com.densermusic.densermusic.dto.artistDTO.DeezerArtistDTO;
+import com.densermusic.densermusic.dto.trackDTO.DeezerTrackSearchResultDTO;
 import com.densermusic.densermusic.exception.BusinessException;
 import com.densermusic.densermusic.model.Artist;
 import com.densermusic.densermusic.model.Playlist;
 import com.densermusic.densermusic.model.Track;
-import com.densermusic.densermusic.service.ArtistService;
-import com.densermusic.densermusic.service.PlaylistService;
-import com.densermusic.densermusic.service.TrackService;
-import org.springframework.stereotype.Component;
+import com.densermusic.densermusic.service.ArtistServiceImpl;
+import com.densermusic.densermusic.service.PlaylistServiceImpl;
+import com.densermusic.densermusic.service.TrackServiceImpl;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,14 +18,14 @@ import java.util.Scanner;
 public class Principal {
 
     private final Scanner scanner = new Scanner(System.in);
-    private final ArtistService artistService;
-    private final PlaylistService playlistService;
-    private final TrackService trackService;
+    private final ArtistServiceImpl artistServiceImpl;
+    private final PlaylistServiceImpl playlistServiceImpl;
+    private final TrackServiceImpl trackServiceImpl;
 
-    public Principal(ArtistService artistService, PlaylistService playlistService, TrackService trackService) {
-        this.artistService = artistService;
-        this.playlistService = playlistService;
-        this.trackService = trackService;
+    public Principal(ArtistServiceImpl artistServiceImpl, PlaylistServiceImpl playlistServiceImpl, TrackServiceImpl trackServiceImpl) {
+        this.artistServiceImpl = artistServiceImpl;
+        this.playlistServiceImpl = playlistServiceImpl;
+        this.trackServiceImpl = trackServiceImpl;
     }
 
     public void exibeMenu() {
@@ -78,9 +77,9 @@ public class Principal {
     }
 
     private void biblioteca() {
-        List<Track> trackSalvas = trackService.carregarTracksSalvas();
-        List<Artist> artistasSalvos = artistService.carregarArtistasSalvos();
-        List<Playlist> playlistsSalvas = playlistService.carregarPlaylistsSalvas();
+        List<Track> trackSalvas = trackServiceImpl.carregarTracksSalvas();
+        List<Artist> artistasSalvos = artistServiceImpl.carregarArtistasSalvos();
+        List<Playlist> playlistsSalvas = playlistServiceImpl.carregarPlaylistsSalvas();
 
         System.out.println("Musicas salvas: " + trackSalvas.size() +
                 "   |   " + "Playlists salvas: " + playlistsSalvas.size() +
@@ -94,7 +93,7 @@ public class Principal {
 
     private void gerenciarPlaylist() {
         try {
-            var playlists = playlistService.carregarPlaylistsSalvas(); //pega todas as playlists salvas no banco de dados
+            var playlists = playlistServiceImpl.carregarPlaylistsSalvas(); //pega todas as playlists salvas no banco de dados
 
             if (playlists.isEmpty()) {//se vazio, nao conseguiu encontrar nenhuma salva
                 System.out.println("Nenhuma playlist criada ainda. Crie uma primeiro.");
@@ -113,7 +112,7 @@ public class Principal {
                 var idPlaylistEscolhida = scanner.nextLong();
                 scanner.nextLine();
 
-                playlistOptional = playlistService.buscarPlaylist(idPlaylistEscolhida); // Tenta buscar no banco
+                playlistOptional = playlistServiceImpl.buscarPlaylist(idPlaylistEscolhida); // Tenta buscar no banco
                 if (playlistOptional.isEmpty()) { // se nao encontrar, id da playlist errado (nao existe)
                     System.out.println("ID de playlist inválido! Tente novamente.");
                 }
@@ -143,7 +142,7 @@ public class Principal {
 
                 case 3:
 
-                    playlistService.deletarPlaylist(playlistEscolhida.getId());
+                    playlistServiceImpl.deletarPlaylist(playlistEscolhida.getId());
                     break;
             }
         } catch (IllegalArgumentException | BusinessException e) {
@@ -179,12 +178,12 @@ public class Principal {
             }
         }
         //service continua a execucao da logica
-        playlistService.removerTrackDaPlaylist(playlistEscolhida.getId(), trackParaRemoverOptional.get().getId() );
+        playlistServiceImpl.removerTrackDaPlaylist(playlistEscolhida.getId(), trackParaRemoverOptional.get().getId() );
     }
 
     private void adicionarMusicaNaPlaylist(Playlist playlistEscolhida) {
         System.out.println("\nPerfeito! Estas sao suas musicas ainda nao adicionadas na " + playlistEscolhida.getName());
-        List<Track> avaiableTracks = playlistService.findAvailableTracksForPlaylist(playlistEscolhida.getId()); // pega todas tracks salvas no banco
+        List<Track> avaiableTracks = playlistServiceImpl.findAvailableTracksForPlaylist(playlistEscolhida.getId()); // pega todas tracks salvas no banco
 
         if (avaiableTracks.isEmpty()) { // caso nao haja nenhuma track disponivel para adicionar
             System.out.println("Todas as músicas da sua biblioteca já estão nesta playlist!");
@@ -209,14 +208,14 @@ public class Principal {
             }
         }
         //service continua a execucao da logica
-        playlistService.adicionarTrackNaPlaylist(playlistEscolhida.getId(), trackParaAdicionarOptional.get().getId());
+        playlistServiceImpl.adicionarTrackNaPlaylist(playlistEscolhida.getId(), trackParaAdicionarOptional.get().getId());
     }
 
     private void novaPlaylist() {
         System.out.println("Nome da playlist: ");
         String nomePlaylist = scanner.nextLine();
         try {
-            Playlist playlistCriada = playlistService.criarPlaylist(nomePlaylist);
+            Playlist playlistCriada = playlistServiceImpl.criarPlaylist(nomePlaylist);
             System.out.println("Playlist '" + playlistCriada.getName() + "'criada com sucesso!");
         } catch (IllegalArgumentException | BusinessException e) {
             System.out.println("Erro ao criar playlist: " + e.getMessage());
@@ -228,7 +227,7 @@ public class Principal {
         var trechoDaTrack = scanner.nextLine();
         try {
             //lista de todas tracks com o trecho correspondente
-            List<DeezerTrackSearchResultDTO> tracksEncontradas = trackService.searchTracksByName(trechoDaTrack);
+            List<DeezerTrackSearchResultDTO> tracksEncontradas = trackServiceImpl.searchTracksByName(trechoDaTrack);
 
             System.out.println("Foram encontradas " + tracksEncontradas.size() + "musicas. Qual delas você buscava?");
 
@@ -272,7 +271,7 @@ public class Principal {
 
         try {
             //lista de todos os artistas com nome correspondente
-            List<DeezerArtistDTO> foundArtists = artistService.searchArtistsByName(nomeDoArtista);
+            List<DeezerArtistDTO> foundArtists = artistServiceImpl.searchArtistsByName(nomeDoArtista);
 
             System.out.println("Foram encontrados " + foundArtists.size() + " artistas. Qual deles você deseja salvar?");
             //imprime deezerId e nome de todos artistas encontrados

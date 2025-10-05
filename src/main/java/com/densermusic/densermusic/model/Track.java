@@ -1,6 +1,6 @@
 package com.densermusic.densermusic.model;
 
-import com.densermusic.densermusic.dto.DeezerTrackDTO;
+import com.densermusic.densermusic.dto.trackDTO.DeezerTrackDTO;
 import jakarta.persistence.*;
 import org.hibernate.annotations.NaturalId;
 
@@ -17,7 +17,7 @@ public class Track {
 
     @NaturalId
     @Column(unique = true, nullable = false)
-    private Long deezerId;
+    private Long apiId;
 
     @ManyToOne //varias tracks para um artista
     private Artist artist;
@@ -37,7 +37,7 @@ public class Track {
 
         newTrack.setName(trackDetailsDto.title());
         newTrack.setArtist(artist); // Usa o objeto Artist que já garantimos que existe
-        newTrack.setDeezerId(trackDetailsDto.deezerId());
+        newTrack.setApiId(trackDetailsDto.apiId());
         newTrack.setDurationInSeconds(trackDetailsDto.duration());
         newTrack.setAlbum(trackDetailsDto.album().title());
         newTrack.setRank(trackDetailsDto.rank());
@@ -86,10 +86,10 @@ public class Track {
         this.name = name;
     }
 
-    public long getDeezerId() {return deezerId;}
+    public long getApiId() {return apiId;}
 
-    public void setDeezerId(Long deezerId) {
-        this.deezerId = deezerId;
+    public void setApiId(Long apiId) {
+        this.apiId = apiId;
     }
 
     public Integer getRank() {
