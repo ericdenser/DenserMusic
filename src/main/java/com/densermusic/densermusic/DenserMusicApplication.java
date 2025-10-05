@@ -9,12 +9,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class DenserMusicApplication implements CommandLineRunner {
 
-	private final Principal principal;
-
-	@Autowired
-	public DenserMusicApplication(Principal principal) {
-		this.principal = principal;
-	}
+	//private final Principal principal;
 
 
 	public static void main(String[] args) {
@@ -23,6 +18,6 @@ public class DenserMusicApplication implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) throws Exception {
-		this.principal.exibeMenu();
+		//this.principal.exibeMenu();
 	}
 }

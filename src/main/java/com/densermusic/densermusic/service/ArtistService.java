@@ -1,10 +1,10 @@
 package com.densermusic.densermusic.service;
 
 import com.densermusic.densermusic.client.DeezerClient;
-import com.densermusic.densermusic.dto.DeezerArtistDTO;
-import com.densermusic.densermusic.dto.DeezerArtistSearchResponseDTO;
+import com.densermusic.densermusic.dto.*;
 import com.densermusic.densermusic.exception.BusinessException;
 import com.densermusic.densermusic.model.Artist;
+import com.densermusic.densermusic.model.Track;
 import com.densermusic.densermusic.repository.ArtistRepository;
 import org.springframework.stereotype.Service;
 
@@ -56,23 +56,35 @@ public class ArtistService {
         return artistRepository.save(artist);
     }
 
-    public Artist findOrCreateArtist(Long artistDeezerId) {
-
+    public CreationResultDTO<Artist> findOrCreateArtist(CreateArtistRequestDTO request) {
         //procura se já está salvo
-        return artistRepository.findByDeezerId(artistDeezerId)
-                .orElseGet(() -> {
+        Optional<Artist> artistOptional = artistRepository.findByDeezerId(request.deezerId());
+        if (artistOptional.isPresent()) {
+            // encontramos o artista, nada foi criado (created = false)
+            return new CreationResultDTO<>(artistOptional.get(), false);
+        }
 
-                    // nao salvo, procura na api
-                    Optional<Artist> artistOptional = fetchArtistFromDeezerApi(artistDeezerId);
+        // nao salvo, procura na api
+        Optional<Artist> newaArtistOptional = fetchArtistFromDeezerApi(request.deezerId());
 
-                    return artistOptional.map(this::save)
-                            .orElseThrow(() -> new BusinessException("Não foi possível encontrar o " +
-                                    "artista no Deezer com o ID: " + artistDeezerId));
-                });
+        // se chegou a esta linha, significa que o artista precisa ser criado
+        Artist savedArtist = newaArtistOptional.map(this::save)
+                .orElseThrow(() -> new BusinessException("Não foi possível encontrar o "
+                        + "Artista no Deezer com o ID: " + request.deezerId()));
+
+        // artista criado e salvo (created = true)
+        return new CreationResultDTO<>(savedArtist, true);
     }
 
     public List<Artist> carregarArtistasSalvos() {
         return artistRepository.findAll();
+    }
+
+    public void deleteArtistByDbId(Long id) {
+        if (!artistRepository.existsById(id)) {
+            throw new BusinessException("Artista com ID " + id + " não encontrado, não foi possível deletar.");
+        }
+            artistRepository.deleteById(id);
     }
 }
 

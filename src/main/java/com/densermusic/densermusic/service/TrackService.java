@@ -1,9 +1,7 @@
 package com.densermusic.densermusic.service;
 
 import com.densermusic.densermusic.client.DeezerClient;
-import com.densermusic.densermusic.dto.DeezerTrackDTO;
-import com.densermusic.densermusic.dto.DeezerTrackSearchResponseDTO;
-import com.densermusic.densermusic.dto.DeezerTrackSearchResultDTO;
+import com.densermusic.densermusic.dto.*;
 import com.densermusic.densermusic.exception.BusinessException;
 import com.densermusic.densermusic.model.Artist;
 import com.densermusic.densermusic.model.Track;
@@ -34,31 +32,39 @@ public class TrackService {
         return trackRepository.save(track);
     }
 
-    private Optional<Track> fetchTrackFromDeezerApi(Long trackDeezerId, Long artistDeezerId) {
+    public CreationResultDTO<Track> findOrCreateTrack(CreateTrackRequestDTO request) {
 
+        Long artistDeezerId = request.artistDeezerId();// variavel com o id do artista da track
+        Long trackDeezerId = request.trackDeezerId(); // variavel com id da track
+
+        //checa se track ja esta salva
+        Optional<Track> trackOptional = trackRepository.findByDeezerId(trackDeezerId);
+
+        if (trackOptional.isPresent()) {
+            // encontramos a track, nada foi criado (created = false)
+            return new CreationResultDTO<>(trackOptional.get(), false);
+        }
+
+        // buscamos os detalhes completos da track na API
         DeezerTrackDTO trackDetailsDto = deezerClient.getTrackById(trackDeezerId);
+        if (trackDetailsDto == null) {
+            throw new BusinessException("Música com ID " + trackDeezerId + " não encontrada no Deezer.");
+        }
 
-        Artist artist = artistService.findOrCreateArtist(artistDeezerId);
+        //validacao critica para artista sempre condizer com track
+        Long correctArtistId = trackDetailsDto.artist().deezerId();
+        if(!correctArtistId.equals(artistDeezerId)) {
+            throw new BusinessException("Conflito de dados: A música com ID " + trackDeezerId
+                    + " pertence ao artista com ID " + correctArtistId + ", não ao artista com ID " + artistDeezerId + ".");
+        }
 
-        return Optional.of(Track.of(trackDetailsDto, artist));
-    }
+        Artist artist = artistService.findOrCreateArtist(new CreateArtistRequestDTO(correctArtistId)).entity();
 
-    public Track findOrCreateTrack(DeezerTrackSearchResultDTO trackSearchResult) {
+        Track newTrack = Track.of(trackDetailsDto, artist);
 
-        Long artistDeezerId = trackSearchResult.artist().deezerId();// variavel com o id do artista da track
+        Track savedTrack = this.save(newTrack);
 
-        Long trackDeezerId = trackSearchResult.deezerId(); // variavel com id da track
-
-        return trackRepository.findByDeezerId(trackDeezerId)
-                .orElseGet(() -> {
-
-                    // nao salvo, procura na api
-                    Optional<Track> trackOptional = fetchTrackFromDeezerApi(trackDeezerId, artistDeezerId );
-
-                    return trackOptional.map(this::save)
-                            .orElseThrow(() -> new BusinessException("Não foi possível encontrar a "
-                                    + "música no Deezer com o ID: " + trackDeezerId));
-                });
+        return new CreationResultDTO<>(savedTrack, true);
     }
 
     // RETORNA LISTA DE TODAS TRACKS COM NOME CORRESPONDENTE
@@ -70,7 +76,7 @@ public class TrackService {
         return Collections.emptyList();
     }
 
-    public Optional<Track> findTrackbyDbId(Long id) {
+    public Optional<Track> findTrackByDbId(Long id) {
         return trackRepository.findById(id);
     }
 
@@ -82,5 +88,11 @@ public class TrackService {
         return trackRepository.findAll();
     }
 
+    public void deleteTrackByDbId(Long id) {
+        if(!trackRepository.existsById(id)){
+            throw new BusinessException("Track com ID " + id + " não encontrado, não foi possível deletar.");
+        }
+        trackRepository.deleteById(id);
+    }
 }
 

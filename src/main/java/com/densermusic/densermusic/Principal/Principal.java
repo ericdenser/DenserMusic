@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Scanner;
 
-@Component
+//@Component
 public class Principal {
 
     private final Scanner scanner = new Scanner(System.in);
@@ -255,7 +255,7 @@ public class Principal {
                     DeezerTrackSearchResultDTO trackEscolhida = tracksEncontradas.get(escolha - 1);
 
                     //service continua a execucao da logica
-                    trackService.findOrCreateTrack(trackEscolhida);
+                    //trackService.findOrCreateTrack(trackEscolhida);
 
                     break;
                 }
@@ -290,7 +290,7 @@ public class Principal {
 
             if (escolha > 0 && escolha <= foundArtists.size()) {
                 //salva o artista especifico com base no indice da lista de todos artistas encontrados
-                Artist novoArtista = artistService.findOrCreateArtist(foundArtists.get(escolha - 1).deezerId());
+                //Artist novoArtista = artistService.findOrCreateArtist(foundArtists.get(escolha - 1).deezerId());
             } else if (escolha == 0){
                 System.out.println("Operação cancelada.");
             } else {

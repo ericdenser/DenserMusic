@@ -7,7 +7,6 @@ import com.densermusic.densermusic.repository.PlaylistRepository;
 import com.densermusic.densermusic.repository.TrackRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -54,7 +53,7 @@ public class PlaylistService {
         //instancia optionals que buscam do banco de dados
         Playlist playlist = playlistRepository.findById(playlistId)
                 .orElseThrow(() -> new BusinessException("Playlist com ID " + playlistId + " não encontrada."));
-        Track track = trackService.findTrackbyDbId(trackId)
+        Track track = trackService.findTrackByDbId(trackId)
                 .orElseThrow(() -> new BusinessException("Música com ID " + trackId + " não encontrada."));
 
         // desempacota se optionals existirem
@@ -71,7 +70,7 @@ public class PlaylistService {
 
         Playlist playlist = playlistRepository.findById(playlistId)
                 .orElseThrow(() -> new BusinessException("Playlist com ID " + playlistId + " não encontrada."));
-        Track track = trackService.findTrackbyDbId(idTrackRemover)
+        Track track = trackService.findTrackByDbId(idTrackRemover)
                 .orElseThrow(() -> new BusinessException("Música com ID " + idTrackRemover + " não encontrada."));
 
         if (!playlist.getTracksOfPlaylist().contains(track)) {

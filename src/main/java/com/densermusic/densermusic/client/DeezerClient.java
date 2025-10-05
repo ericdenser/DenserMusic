@@ -16,7 +16,7 @@ public interface DeezerClient {
     DeezerArtistDTO searchArtistById(@PathVariable("id") Long artistId);
 
     @GetExchange("/track/{id}") // <- placeholder "deezerId"
-    DeezerTrackDTO getTrackById(@PathVariable("id") Long trackId); // receba um trackId e substitua-o no placeholder {deezerId}
+    DeezerTrackDTO getTrackById(@PathVariable("id") Long trackId); // receba um trackId e substitua-o no placeholder {id}
 
     @GetExchange("/search/track")
     DeezerTrackSearchResponseDTO getTrackByName(@RequestParam("q") String trackName);
