@@ -10,8 +10,10 @@ import java.util.Optional;
 
 public interface TrackRepository extends JpaRepository<Track, Long> {
     Optional<Track> findByNameIgnoreCase(String name);
+
     Optional<Track> findByApiId(Long apiId);
 
     @Query("SELECT t FROM Track t WHERE t NOT IN (SELECT pt FROM Playlist p JOIN p.tracksOfPlaylist pt WHERE p.id = :playlistId)")
     List<Track> findTracksNotInPlaylist(@Param("playlistId") Long playlistId);
+
 }

@@ -26,7 +26,7 @@ public class PlaylistController {
 
     @GetMapping("/search")
     public List<Playlist> getAllPlaylists() {
-        return playlistService.carregarPlaylistsSalvas();
+        return playlistService.loadSavedPlaylists();
     }
 
     @GetMapping("/{id}")
@@ -37,7 +37,7 @@ public class PlaylistController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Playlist createPlaylist(@RequestBody CreatePlaylistRequestDTO request) {
-        return playlistService.criarPlaylist(request.name());
+        return playlistService.createPlaylist(request.name());
     }
 
     @PutMapping("/{id}")
@@ -48,19 +48,19 @@ public class PlaylistController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePlaylist(@PathVariable Long id) {
-        playlistService.deletarPlaylist(id);
+        playlistService.deletePlaylist(id);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{playlistId}/tracks")
     @ResponseStatus(HttpStatus.OK)
     public Playlist addTrackToPlaylist(@PathVariable Long playlistId, @RequestBody AddTrackRequestDTO request) {
-        return playlistService.adicionarTrackNaPlaylist(playlistId, request.trackId());
+        return playlistService.addTrackInPlaylist(playlistId, request.trackId());
     }
 
     @DeleteMapping("/{playlistId}/tracks/{trackId}")
     public ResponseEntity<Void> deleteTrackFromPlaylist(@PathVariable Long playlistId, @PathVariable Long trackId) {
-        playlistService.removerTrackDaPlaylist(playlistId, trackId);
+        playlistService.removeTrackFromPlaylist(playlistId, trackId);
         return ResponseEntity.noContent().build();
     }
 

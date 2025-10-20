@@ -9,19 +9,19 @@ import java.util.Optional;
 
 public interface PlaylistService {
 
-    Playlist criarPlaylist(String nome);
+    Playlist createPlaylist(String nome);
 
-    void deletarPlaylist(Long playlistId);
+    void deletePlaylist(Long playlistId);
 
     Playlist updatePlaylistName(Long playlistId, String nome);
 
-    Playlist adicionarTrackNaPlaylist(Long playlistId, Long trackId);
+    Playlist addTrackInPlaylist(Long playlistId, Long trackId);
 
-    Playlist removerTrackDaPlaylist(Long playlistId, Long trackId);
+    Playlist removeTrackFromPlaylist(Long playlistId, Long trackId);
 
-    List<Playlist> carregarPlaylistsSalvas();
+    List<Playlist> loadSavedPlaylists();
 
-    Optional<Playlist> buscarPlaylist(Long playlistId);
+    Optional<Playlist> searchPlaylist(Long playlistId);
 
     Optional<PlaylistDetailsDTO> findDetailsById(Long id);
 

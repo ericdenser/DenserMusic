@@ -1,4 +1,4 @@
-package com.densermusic.densermusic.dto.artistDTO;
+package com.densermusic.densermusic.dto.trackDTO;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 

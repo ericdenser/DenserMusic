@@ -28,7 +28,7 @@ public class TrackServiceImpl implements TrackService {
     private final DeezerClient deezerClient;
     private final ArtistService artistService;
 
-    public TrackServiceImpl(TrackRepository trackRepository, DeezerClient deezerClient, ArtistServiceImpl artistService) {
+    public TrackServiceImpl(TrackRepository trackRepository, DeezerClient deezerClient, ArtistService artistService) {
         this.trackRepository = trackRepository;
         this.deezerClient = deezerClient;
         this.artistService = artistService;

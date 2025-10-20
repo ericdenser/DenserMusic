@@ -19,26 +19,26 @@ public class PlaylistServiceImpl implements PlaylistService {
 
     private static final Logger logger = LoggerFactory.getLogger(PlaylistServiceImpl.class);
     private final PlaylistRepository playlistRepository;
-    private final TrackServiceImpl trackServiceImpl;
+    private final TrackService trackService;
     private final TrackRepository trackRepository;
 
-    public PlaylistServiceImpl(PlaylistRepository playlistRepository, TrackServiceImpl trackServiceImpl, TrackRepository trackRepository) {
+    public PlaylistServiceImpl(PlaylistRepository playlistRepository, TrackService trackService, TrackRepository trackRepository) {
         this.playlistRepository = playlistRepository;
-        this.trackServiceImpl = trackServiceImpl;
+        this.trackService = trackService;
         this.trackRepository = trackRepository;
     }
 
     //CRIA PLAYLIST
     @Transactional
     @Override
-    public Playlist criarPlaylist(String nome) {
+    public Playlist createPlaylist(String nome) {
         if (nome == null || nome.isBlank()) {
             logger.warn("Nome informado para playlist está vazio: '{}'", nome);
             throw new IllegalArgumentException("Nome nao pode ser vazio");
         }
 
         if (playlistRepository.findByNameIgnoreCase(nome).isPresent()) {
-            logger.warn("Nome '{}'ja é usado para outra playlist", nome);
+            logger.warn("Nome '{}' ja é usado para outra playlist", nome);
             throw new BusinessException("Ja existe uma playlist salva com o nome: " + nome);
         }
 
@@ -52,7 +52,7 @@ public class PlaylistServiceImpl implements PlaylistService {
 
     @Transactional
     @Override
-    public void deletarPlaylist(Long playlistId) {
+    public void deletePlaylist(Long playlistId) {
 
         if (!playlistRepository.existsById(playlistId)) {
             logger.warn("Tentativa de deletar playlist com ID de banco {} falhou. Playlist não encontrada.", playlistId);
@@ -78,7 +78,7 @@ public class PlaylistServiceImpl implements PlaylistService {
     //ADICIONA UMA TRACK JA EXISTENTE A UMA PLAYLIST JA EXISTENTE
     @Transactional
     @Override
-    public Playlist adicionarTrackNaPlaylist(Long playlistId, Long trackId) {
+    public Playlist addTrackInPlaylist(Long playlistId, Long trackId) {
         //buscando do banco de dados
         Playlist playlist = playlistRepository.findById(playlistId)
                 .orElseThrow(() -> {
@@ -86,7 +86,7 @@ public class PlaylistServiceImpl implements PlaylistService {
                     return new BusinessException("Playlist com ID " + playlistId + " não encontrada.");
                 });
 
-        Track track = trackServiceImpl.findTrackByDbId(trackId)
+        Track track = trackService.findTrackByDbId(trackId)
                 .orElseThrow(() -> {
                     logger.warn("Track com ID {} nao encontrada no Banco de Dados.", playlistId);
                     return new BusinessException("Track com ID: " + trackId + " não encontrada.\"");
@@ -100,13 +100,14 @@ public class PlaylistServiceImpl implements PlaylistService {
 
         playlist.getTracksOfPlaylist().add(track); //adiciona a track na lista
         logger.info("Track '{}' (ID {}) salva com sucesso playlist de ID {}.", track.getName(), trackId, playlistId);
-        return playlist; //TRANSACTIONAL atualiza as alteracoes no banco
+        return playlistRepository.save(playlist); //TRANSACTIONAL garante atomicidade,
+        // .save garante 100% que a tabela de junção seja atualizada corretamente, mesmo com TRANSACTIONAL
     }
 
     //REMOVE UMA TRACK JA EXISTENTE DE UMA PLAYLIST JA EXISTENTE
     @Transactional
     @Override
-    public Playlist removerTrackDaPlaylist(Long playlistId, Long trackId) {
+    public Playlist removeTrackFromPlaylist(Long playlistId, Long trackId) {
 
         Playlist playlist = playlistRepository.findById(playlistId)
                 .orElseThrow(() -> {
@@ -114,7 +115,7 @@ public class PlaylistServiceImpl implements PlaylistService {
                     return new BusinessException("Playlist com ID " + playlistId + " não encontrada.");
                 });
 
-        Track track = trackServiceImpl.findTrackByDbId(trackId)
+        Track track = trackService.findTrackByDbId(trackId)
                 .orElseThrow(() -> {
                     logger.warn("Track com ID {} nao encontrada no Banco de Dados.", trackId);
                     return new BusinessException("Track com ID: " + trackId + " não encontrada.\"");
@@ -127,16 +128,17 @@ public class PlaylistServiceImpl implements PlaylistService {
 
         playlist.getTracksOfPlaylist().remove(track); //remove da lista
         logger.info("Track '{}' (ID {}) removida com sucesso da playlist de ID {}.", track.getName(), trackId, playlistId);
-        return playlist; //TRANSACTIONAL atualiza as alteracoes no banco
+        return playlistRepository.save(playlist); //TRANSACTIONAL garante atomicidade,
+        // .save garante 100% que a tabela de junção seja atualizada corretamente, mesmo com TRANSACTIONAL
     }
 
     @Override
-    public List<Playlist> carregarPlaylistsSalvas() {
+    public List<Playlist> loadSavedPlaylists() {
         return playlistRepository.findAll();
     }
 
     @Override
-    public Optional<Playlist> buscarPlaylist(Long playlistId) {
+    public Optional<Playlist> searchPlaylist(Long playlistId) {
         return playlistRepository.findById(playlistId);
     }
 

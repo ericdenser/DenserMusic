@@ -24,7 +24,8 @@ public class Playlist {
             joinColumns = @JoinColumn(name = "playlist_id"), // coluna que referencia o ID da playlist na tabela intermediária.
             inverseJoinColumns = @JoinColumn(name = "track_id") // coluna que referencia o ID da track na tabela intermediária.
     )
-    List<Track> tracksOfPlaylist = new ArrayList<>();
+
+    private List<Track> tracksOfPlaylist = new ArrayList<>();
 
     public Playlist() {}
 
