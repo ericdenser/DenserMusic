@@ -104,7 +104,7 @@ public class ArtistServiceImpl implements ArtistService {
     }
 
     @Override
-    public List<Artist> carregarArtistasSalvos() {
+    public List<Artist> loadSavedArtists() {
         return artistRepository.findAll();
     }
 

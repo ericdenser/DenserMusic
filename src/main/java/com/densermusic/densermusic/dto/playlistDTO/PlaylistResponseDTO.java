@@ -1,11 +1,13 @@
 package com.densermusic.densermusic.dto.playlistDTO;
 
+
 import com.densermusic.densermusic.dto.trackDTO.TrackResponseDTO;
 import com.densermusic.densermusic.model.Track;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.util.List;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-public record PlaylistDetailsDTO(Long id, String name, List<TrackResponseDTO> tracks) {
+public record PlaylistResponseDTO(
+        Long id,
+        String name
+) {
 }

@@ -6,6 +6,7 @@ import com.densermusic.densermusic.dto.artistDTO.CreateArtistRequestDTO;
 import com.densermusic.densermusic.dto.artistDTO.DeezerArtistSearchResponseDTO;
 import com.densermusic.densermusic.dto.trackDTO.*;
 import com.densermusic.densermusic.dto.artistDTO.DeezerArtistDTO;
+import com.densermusic.densermusic.exception.BusinessException;
 import com.densermusic.densermusic.model.Artist;
 import com.densermusic.densermusic.model.Track;
 import com.densermusic.densermusic.repository.TrackRepository;
@@ -105,6 +106,7 @@ class TrackServiceImplTest {
         // Arrange
         Long trackApiId = 27L;
         Long artistApiId = 10L;
+
         CreateTrackRequestDTO request = new CreateTrackRequestDTO(trackApiId, artistApiId);
 
 
@@ -131,6 +133,73 @@ class TrackServiceImplTest {
         verify(deezerClient, never()).getTrackById(trackApiId);
         verify(artistService, never()).findOrCreateArtist(any(CreateArtistRequestDTO.class));
         verify(trackRepository, never()).save(any(Track.class));
+    }
+
+    @Test
+    void findOrCreateTrack_shouldThrowException_whenArtistIdDoesNotMatchTrackArtist() {
+
+        //arrange
+        Long trackApiId = 27L;
+        Long wrongArtistApiId = 99L; // ID incorreto enviado
+        Long correctArtistApiId = 10L;
+
+        CreateTrackRequestDTO request = new CreateTrackRequestDTO(trackApiId, wrongArtistApiId);
+
+        DeezerArtistDTO correctArtist = new DeezerArtistDTO("Pearl Jam", "pic", correctArtistApiId, 10000);
+        DeezerTrackDTO trackDTO = new DeezerTrackDTO("Jeremy", 297, 3, trackApiId, "1991-08-27", new DeezerAlbumDTO("Ten"), correctArtist);
+
+        when(trackRepository.findByApiId(trackApiId))
+                .thenReturn(Optional.empty());
+
+        when(deezerClient.getTrackById(trackApiId))
+                .thenReturn(trackDTO);
+
+        BusinessException exception = assertThrows(BusinessException.class, () -> {
+            trackService.findOrCreateTrack(request);
+        });
+
+        assertTrue(exception.getMessage().contains("Conflito de dados"));
+        verify(artistService, never()).findOrCreateArtist(any());
+        verify(trackRepository, never()).save(any());
+    }
+
+    @Test
+    void findOrCreateTrack_shouldCreateTrackAndArtist_whenNeitherExists() {
+        // Arrange
+        Long trackApiId = 27L;
+        Long artistApiId = 10L;
+        CreateTrackRequestDTO request = new CreateTrackRequestDTO(trackApiId, artistApiId);
+
+        DeezerAlbumDTO albumDTO = new DeezerAlbumDTO("Ten");
+        DeezerArtistDTO artistDTO = new DeezerArtistDTO("Pearl Jam", "pic_url", artistApiId, 10000);
+        DeezerTrackDTO trackDTO = new DeezerTrackDTO("Jeremy", 297, 3, trackApiId, "1991-08-27", albumDTO, artistDTO);
+
+        Artist createdArtist = Artist.of(artistDTO);
+        Track createdTrack = Track.of(trackDTO, createdArtist);
+
+        when(trackRepository.findByApiId(trackApiId))
+                .thenReturn(Optional.empty());
+
+        when(deezerClient.getTrackById(trackApiId))
+                .thenReturn(trackDTO);
+
+        when(artistService.findOrCreateArtist(any(CreateArtistRequestDTO.class)))
+                .thenReturn(new CreationResultDTO<>(createdArtist, true));
+
+        when(trackRepository.save(any(Track.class)))
+                .thenReturn(createdTrack);
+
+        // Act
+        CreationResultDTO<Track> result = trackService.findOrCreateTrack(request);
+
+        // Assert
+        assertNotNull(result);
+        assertTrue(result.created());
+        assertEquals("Jeremy", result.entity().getName());
+        assertEquals("Pearl Jam", result.entity().getArtist().getName());
+
+        verify(trackRepository).save(any(Track.class));
+        verify(artistService).findOrCreateArtist(new CreateArtistRequestDTO(artistApiId));
     }
 
     @Test
@@ -180,4 +249,104 @@ class TrackServiceImplTest {
         assertNotNull(result);
         assertTrue(result.isEmpty());
     }
+
+    @Test
+    void save_shouldPersistTrack_whenTrackDoesNotExist() {
+        //arrange
+        Track track = new Track();
+        track.setApiId(123L);
+
+        when(trackRepository.findByApiId(123L))
+                .thenReturn(Optional.empty());
+
+        when(trackRepository.save(track))
+                .thenReturn(track);
+
+        //act
+        Track result = trackService.save(track);
+
+        //assert
+        assertNotNull(result);
+        verify(trackRepository).save(track);
+    }
+
+    @Test
+    void save_shouldThrowException_whenTrackAlreadyExists() {
+        //arrange
+        Track track = new Track();
+        track.setApiId(123L);
+
+        when(trackRepository.findByApiId(123L))
+                .thenReturn(Optional.of(track));
+
+        //act
+        BusinessException exception = assertThrows(BusinessException.class, () -> {
+            trackService.save(track);
+        });
+
+        //assert
+        assertEquals("Música com Deezer ID 123 já existe.", exception.getMessage());
+        verify(trackRepository, never()).save(any());
+    }
+
+    @Test
+    void deleteTrackByDbId_shouldDelete_whenTrackExists() {
+        Long id = 1L;
+        when(trackRepository.existsById(id)).thenReturn(true);
+
+        trackService.deleteTrackByDbId(id);
+
+        verify(trackRepository).deleteById(id);
+    }
+
+    @Test
+    void deleteTrackByDbId_shouldThrowException_whenTrackDoesNotExist() {
+        Long id = 1L;
+        when(trackRepository.existsById(id)).thenReturn(false);
+
+        BusinessException exception = assertThrows(BusinessException.class, () -> {
+            trackService.deleteTrackByDbId(id);
+        });
+
+        assertTrue(exception.getMessage().contains("não encontrado"));
+        verify(trackRepository, never()).deleteById(any());
+    }
+
+    @Test
+    void findTrackByDbId_shouldReturnTrack_whenExists() {
+        //arrange
+        Long id = 1L;
+        Track track = new Track();
+        when(trackRepository.findById(id)).thenReturn(Optional.of(track));
+
+        //act
+        Optional<Track> result = trackService.findTrackByDbId(id);
+
+        //assert
+        assertTrue(result.isPresent());
+    }
+
+    @Test
+    void findTrackByApiId_shouldReturnTrack_whenExists() {
+        Long apiId = 123L;
+        Track track = new Track();
+        when(trackRepository.findByApiId(apiId)).thenReturn(Optional.of(track));
+
+        //act
+        Optional<Track> result = trackService.findTrackByApiId(apiId);
+
+        assertTrue(result.isPresent());
+    }
+
+    @Test
+    void loadSavedTracks_shouldReturnTrackList() {
+        List<Track> tracks = List.of(new Track(), new Track());
+        when(trackRepository.findAll()).thenReturn(tracks);
+
+        //act
+        List<Track> result = trackService.carregarTracksSalvas();
+
+        assertEquals(2, result.size());
+    }
+
 }

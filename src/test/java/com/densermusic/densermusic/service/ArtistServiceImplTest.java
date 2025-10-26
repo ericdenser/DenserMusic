@@ -13,6 +13,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import static org.mockito.Mockito.*;
+import com.densermusic.densermusic.exception.BusinessException;
+
 
 import java.util.Collections;
 import java.util.List;
@@ -134,5 +136,151 @@ class ArtistServiceImplTest {
 
         // procura na api apenas 1 vez
         verify(deezerClient, times(1)).searchArtistById(apiId);
+    }
+
+    @Test
+    void findByApiId_shouldReturnArtist_whenArtistExists() {
+        //arrange
+        Long apiId = 10L;
+        Artist artist = new Artist("TestArtist", "url", 123, apiId);
+
+
+        when(artistRepository.findByApiId(apiId)).thenReturn(Optional.of(artist));
+
+        //act
+        Optional<Artist> result = artistService.findByApiId(apiId);
+
+
+        //assert
+        assertTrue(result.isPresent());
+        assertEquals("TestArtist", result.get().getName());
+    }
+
+    @Test
+    void findByApiId_shouldReturnEmpty_whenArtistDoesNotExist() {
+
+        //arrange
+        when(artistRepository.findByApiId(anyLong()))
+                .thenReturn(Optional.empty());
+
+
+        //act
+        Optional<Artist> result = artistService.findByApiId(999L);
+
+        //assert
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void findByDbId_shouldReturnArtist_whenArtistExists() {
+
+        //arrange
+        Long id = 1L;
+        Artist artist = new Artist("TestArtist", "url", 123, 55L);
+
+        when(artistRepository.findById(id))
+                .thenReturn(Optional.of(artist));
+
+
+        //act
+        Optional<Artist> result = artistService.findByDbId(id);
+
+        //assert
+        assertTrue(result.isPresent());
+        assertEquals("TestArtist", result.get().getName());
+    }
+
+    @Test
+    void findByDbId_shouldReturnEmpty_whenArtistDoesNotExist() {
+
+        //assert
+        when(artistRepository.findById(anyLong()))
+                .thenReturn(Optional.empty());
+
+        //act
+        Optional<Artist> result = artistService.findByDbId(999L);
+
+        //assert
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void loadSavedArtists_shouldReturnArtistList() {
+        //arrange
+        List<Artist> artistList = List.of(new Artist(), new Artist());
+        when(artistRepository.findAll())
+                .thenReturn(artistList);
+
+        //act
+        List<Artist> result = artistService.loadSavedArtists();
+
+
+        //assert
+        assertEquals(2, result.size());
+    }
+
+    @Test
+    void save_shouldThrowException_whenArtistAlreadyExists() {
+
+        //arrange
+        Artist artist = new Artist("DupArtist", "url", 100, 10L);
+
+        when(artistRepository.findByApiId(artist.getApiId()))
+                .thenReturn(Optional.of(artist));
+
+        // act + assert
+        BusinessException exception = assertThrows(BusinessException.class, () -> {
+            artistService.save(artist);
+        });
+
+        assertEquals("Artista com API ID 10 já existe.", exception.getMessage());
+    }
+
+    @Test
+    void save_shouldSaveArtist_whenArtistDoesNotExist() {
+
+        //arrange
+        Artist artist = new Artist("NewArtist", "url", 100, 10L);
+
+        when(artistRepository.findByApiId(artist.getApiId()))
+                .thenReturn(Optional.empty());
+        when(artistRepository.save(artist))
+                .thenReturn(artist);
+
+        //act
+        Artist saved = artistService.save(artist);
+
+        //assert
+        assertEquals("NewArtist", saved.getName());
+        verify(artistRepository, times(1)).save(artist);
+    }
+
+    @Test
+    void deleteArtistByDbId_shouldThrowException_whenArtistDoesNotExist() {
+        //arrange
+        Long id = 5L;
+        when(artistRepository.existsById(id))
+                .thenReturn(false);
+
+        // act + assert
+        BusinessException exception = assertThrows(BusinessException.class, () -> {
+            artistService.deleteArtistByDbId(id);
+        });
+
+        assertEquals("Artista com ID 5 não encontrado, não foi possível deletar.", exception.getMessage());
+    }
+
+    @Test
+    void deleteArtistByDbId_shouldDeleteArtist_whenArtistExists() {
+        //arrange
+        Long id = 5L;
+        when(artistRepository.existsById(id))
+                .thenReturn(true);
+
+        //act
+        artistService.deleteArtistByDbId(id);
+
+        //assert
+        verify(artistRepository, times(1)).deleteById(id);
     }
 }

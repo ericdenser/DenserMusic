@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface TrackRepository extends JpaRepository<Track, Long> {
+
     Optional<Track> findByNameIgnoreCase(String name);
 
     Optional<Track> findByApiId(Long apiId);

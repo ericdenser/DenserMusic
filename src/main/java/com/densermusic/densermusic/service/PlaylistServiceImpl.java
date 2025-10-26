@@ -1,7 +1,9 @@
 package com.densermusic.densermusic.service;
 
 import com.densermusic.densermusic.dto.playlistDTO.PlaylistDetailsDTO;
+import com.densermusic.densermusic.dto.trackDTO.TrackResponseDTO;
 import com.densermusic.densermusic.exception.BusinessException;
+import com.densermusic.densermusic.mapper.TrackMapper;
 import com.densermusic.densermusic.model.Playlist;
 import com.densermusic.densermusic.model.Track;
 import com.densermusic.densermusic.repository.PlaylistRepository;
@@ -21,11 +23,13 @@ public class PlaylistServiceImpl implements PlaylistService {
     private final PlaylistRepository playlistRepository;
     private final TrackService trackService;
     private final TrackRepository trackRepository;
+    private final TrackMapper trackMapper;
 
-    public PlaylistServiceImpl(PlaylistRepository playlistRepository, TrackService trackService, TrackRepository trackRepository) {
+    public PlaylistServiceImpl(PlaylistRepository playlistRepository, TrackService trackService, TrackRepository trackRepository, TrackMapper trackMapper) {
         this.playlistRepository = playlistRepository;
         this.trackService = trackService;
         this.trackRepository = trackRepository;
+        this.trackMapper = trackMapper;
     }
 
     //CRIA PLAYLIST
@@ -155,6 +159,6 @@ public class PlaylistServiceImpl implements PlaylistService {
     @Override
     public Optional<PlaylistDetailsDTO> findDetailsById(Long id) {
         return playlistRepository.findByIdWithTracks(id)
-                .map(p -> new PlaylistDetailsDTO(p.getId(), p.getName(), p.getTracksOfPlaylist()));
+                .map(p -> new PlaylistDetailsDTO(p.getId(), p.getName(), trackMapper.toDTOList(p.getTracksOfPlaylist())));
     }
 }

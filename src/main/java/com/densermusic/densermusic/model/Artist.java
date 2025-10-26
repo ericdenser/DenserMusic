@@ -76,6 +76,11 @@ public class Artist {
         this.apiId = apiId;
     }
 
+    public Long getId() {
+        return id;
+    }
+
+
     @Override
     public String toString() {
         return "Artista: " + name + " (Fãs: " + totalDeezerFans + ")";
@@ -92,4 +97,5 @@ public class Artist {
     public int hashCode() {
         return Objects.hashCode(id);
     }
+
 }

@@ -22,7 +22,7 @@ public interface ArtistService {
 
     CreationResultDTO<Artist> findOrCreateArtist(CreateArtistRequestDTO request);
 
-    List<Artist> carregarArtistasSalvos();
+    List<Artist> loadSavedArtists();
 
     void deleteArtistByDbId(Long id);
 }

@@ -1,6 +1,8 @@
 package com.densermusic.densermusic.repository;
 
 import com.densermusic.densermusic.dto.playlistDTO.PlaylistDetailsDTO;
+import com.densermusic.densermusic.mapper.ArtistMapper;
+import com.densermusic.densermusic.mapper.TrackMapper;
 import com.densermusic.densermusic.model.Artist;
 import com.densermusic.densermusic.model.Playlist;
 import com.densermusic.densermusic.model.Track;
@@ -27,8 +29,13 @@ class PlaylistRepositoryTest {
 
     private Playlist playlist1;
 
+    private TrackMapper trackMapper;
+
     @BeforeEach // antes de cada teste
     void setUpDataBase() {
+
+        ArtistMapper artistMapper = new ArtistMapper();
+        trackMapper = new TrackMapper(artistMapper);
 
         // cria e salva artista que vai ser utilizado para criar a musica
         Artist testArtist = new Artist("Pearl Jam", "pc_url", 2000, 11L);
@@ -83,7 +90,7 @@ class PlaylistRepositoryTest {
 
         // act
         Optional<PlaylistDetailsDTO> playlistOptional = playlistRepository.findByIdWithTracks(playlist1.getId())
-                .map(p -> new PlaylistDetailsDTO(p.getId(), p.getName(), p.getTracksOfPlaylist()));
+                .map(p -> new PlaylistDetailsDTO(p.getId(), p.getName(), trackMapper.toDTOList(p.getTracksOfPlaylist())));
 
         //assert
         assertTrue(playlistOptional.isPresent());

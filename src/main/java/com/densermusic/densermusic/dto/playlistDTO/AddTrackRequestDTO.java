@@ -1,4 +1,8 @@
 package com.densermusic.densermusic.dto.playlistDTO;
 
-public record AddTrackRequestDTO(Long trackId) {
-}
+import jakarta.validation.constraints.NotNull;
+
+public record AddTrackRequestDTO(
+        @NotNull(message = "O campo trackId é obrigatório.")
+        Long trackId
+) {}

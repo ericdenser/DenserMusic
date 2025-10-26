@@ -1,16 +1,14 @@
 package com.densermusic.densermusic.controller;
 
-
-import com.densermusic.densermusic.dto.playlistDTO.AddTrackRequestDTO;
-import com.densermusic.densermusic.dto.playlistDTO.CreatePlaylistRequestDTO;
-import com.densermusic.densermusic.dto.playlistDTO.PlaylistDetailsDTO;
-import com.densermusic.densermusic.dto.playlistDTO.UpdatePlaylistRequestDTO;
+import com.densermusic.densermusic.dto.playlistDTO.*;
+import com.densermusic.densermusic.mapper.PlaylistMapper;
 import com.densermusic.densermusic.model.Playlist;
 import com.densermusic.densermusic.service.PlaylistService;
-import org.springframework.http.HttpStatus;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -18,32 +16,36 @@ import java.util.List;
 public class PlaylistController {
 
     private final PlaylistService playlistService;
+    private final PlaylistMapper playlistMapper;
 
-
-    public PlaylistController(PlaylistService playlistService) {
+    public PlaylistController(PlaylistService playlistService, PlaylistMapper playlistMapper) {
         this.playlistService = playlistService;
+        this.playlistMapper = playlistMapper;
     }
 
-    @GetMapping("/search")
-    public List<Playlist> getAllPlaylists() {
-        return playlistService.loadSavedPlaylists();
+    @GetMapping
+    public ResponseEntity<List<PlaylistResponseDTO>> getAllPlaylists() {
+        List<Playlist> playlists = playlistService.loadSavedPlaylists();
+        return ResponseEntity.ok(playlistMapper.toDTOList(playlists));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PlaylistDetailsDTO> getPlaylistById (@PathVariable Long id) {
+    public ResponseEntity<PlaylistDetailsDTO> getPlaylistById(@PathVariable Long id) {
         return ResponseEntity.of(playlistService.findDetailsById(id));
     }
 
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public Playlist createPlaylist(@RequestBody CreatePlaylistRequestDTO request) {
-        return playlistService.createPlaylist(request.name());
+    public ResponseEntity<PlaylistResponseDTO> createPlaylist(@RequestBody @Valid CreatePlaylistRequestDTO request) {
+        Playlist playlist = playlistService.createPlaylist(request.name());
+        PlaylistResponseDTO dto = playlistMapper.toDTO(playlist);
+        URI location = URI.create("/api/playlists/" + dto.id());
+        return ResponseEntity.created(location).body(dto);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Playlist> updatePlaylistName(@PathVariable Long id, @RequestBody UpdatePlaylistRequestDTO request) {
+    public ResponseEntity<PlaylistResponseDTO> updatePlaylistName(@PathVariable Long id, @RequestBody @Valid UpdatePlaylistRequestDTO request) {
         Playlist updatedPlaylist = playlistService.updatePlaylistName(id, request.newName());
-        return ResponseEntity.ok(updatedPlaylist);
+        return ResponseEntity.ok(playlistMapper.toDTO(updatedPlaylist));
     }
 
     @DeleteMapping("/{id}")
@@ -53,9 +55,9 @@ public class PlaylistController {
     }
 
     @PostMapping("/{playlistId}/tracks")
-    @ResponseStatus(HttpStatus.OK)
-    public Playlist addTrackToPlaylist(@PathVariable Long playlistId, @RequestBody AddTrackRequestDTO request) {
-        return playlistService.addTrackInPlaylist(playlistId, request.trackId());
+    public ResponseEntity<PlaylistDetailsDTO> addTrackToPlaylist(@PathVariable Long playlistId, @RequestBody @Valid AddTrackRequestDTO request) {
+        Playlist updated = playlistService.addTrackInPlaylist(playlistId, request.trackId());
+        return ResponseEntity.ok(playlistMapper.toDetailsDTO(updated));
     }
 
     @DeleteMapping("/{playlistId}/tracks/{trackId}")
@@ -63,5 +65,4 @@ public class PlaylistController {
         playlistService.removeTrackFromPlaylist(playlistId, trackId);
         return ResponseEntity.noContent().build();
     }
-
 }
