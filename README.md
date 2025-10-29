@@ -6,7 +6,7 @@ Uma API RESTful para um aplicativo de música, construída com Java 21, Spring B
 
 ## Funcionalidades (Features)
 
-* **Gerenciamento de Usuários:** CRUD completo para usuários, incluindo listagem e obtenção por ID.
+* **Gerenciamento de Artistas:** CRUD completo para artistas, incluindo listagem e obtenção por ID.
 * **Gerenciamento de Músicas (Tracks):** CRUD completo para músicas.
 * **Gerenciamento de Playlists:** CRUD completo para playlists, permitindo que usuários criem e gerenciem suas próprias listas de músicas.
 * **Mapeamento de Objetos:** Uso de MapStruct para um mapeamento limpo e eficiente entre entidades JPA (Models) e Objetos de Transferência de Dados (DTOs).
