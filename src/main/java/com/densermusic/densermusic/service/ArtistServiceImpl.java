@@ -29,7 +29,6 @@ public class ArtistServiceImpl implements ArtistService {
         this.deezerClient = deezerClient;
     }
 
-    //SALVA UM ARTISTA NO BANCO (getFirst)
     @Override
     public Optional<Artist> fetchArtistFromApi(Long artistApiId) {
         DeezerArtistDTO ApiArtistDto = deezerClient.searchArtistById(artistApiId);

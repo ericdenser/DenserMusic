@@ -115,7 +115,7 @@ class TrackControllerTest {
     @Test
     void getTrackById_shouldReturn200AndTrack_whenTrackIsSaved() throws Exception{
 
-        ArtistResponseDTO artistDto = new ArtistResponseDTO(1L, 1L, "Pearl Jam", "url1", 100);
+        ArtistResponseDTO artistDto = new ArtistResponseDTO(1L, 2L, "Pearl Jam", "url1", 100);
 
         TrackResponseDTO trackResponseDTO = new TrackResponseDTO(102L, 100L, "Jeremy", "Ten", 99, 90, LocalDate.parse("1991-08-27"), artistDto);
 

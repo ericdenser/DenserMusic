@@ -18,7 +18,7 @@ public class Playlist {
     private String name;
 
     //varias tracks na playlist, e varias playlists com a track
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY) // cascade e fetchType há serem avaliados
+    @ManyToMany(cascade = CascadeType.MERGE, fetch = FetchType.LAZY) // cascade e fetchType há serem avaliados
     @JoinTable(
             name = "playlist_tracks",
             joinColumns = @JoinColumn(name = "playlist_id"), // coluna que referencia o ID da playlist na tabela intermediária.

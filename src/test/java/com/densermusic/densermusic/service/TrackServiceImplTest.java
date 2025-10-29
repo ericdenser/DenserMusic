@@ -154,10 +154,12 @@ class TrackServiceImplTest {
         when(deezerClient.getTrackById(trackApiId))
                 .thenReturn(trackDTO);
 
+        //act
         BusinessException exception = assertThrows(BusinessException.class, () -> {
             trackService.findOrCreateTrack(request);
         });
 
+        //assert
         assertTrue(exception.getMessage().contains("Conflito de dados"));
         verify(artistService, never()).findOrCreateArtist(any());
         verify(trackRepository, never()).save(any());
