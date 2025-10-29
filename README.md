@@ -21,4 +21,4 @@ O projeto utiliza JUnit 5 e Mockito para testes unitários e de integração, co
 
 Este é o último relatório de cobertura de testes do projeto:
 
-![Relatório de Cobertura JaCoCo](docs/TesteJacoco.png)
+![Relatório de Cobertura JaCoCo](/src/main/java/com/densermusic/densermusic/docs/TesteJacoco.png)
