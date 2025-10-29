@@ -19,6 +19,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/artists")
+@CrossOrigin(origins = "*")
 public class ArtistController {
 
     private final ArtistService artistService;

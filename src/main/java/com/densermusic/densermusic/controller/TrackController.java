@@ -22,6 +22,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/tracks")
+@CrossOrigin(origins = "*")
 public class TrackController {
 
     private final TrackService trackService;

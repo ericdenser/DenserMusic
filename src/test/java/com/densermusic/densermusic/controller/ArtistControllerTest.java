@@ -44,7 +44,6 @@ class ArtistControllerTest {
 
 
     @Test
-    @DisplayName("GET /api/artists - Deve retornar 200 OK com lista de artistas")
     void loadSavedArtists_shouldReturn200WithList() throws Exception {
         Artist artist1 = new Artist("Nome1", "url1", 100, 1L);
         Artist artist2 = new Artist("Nome2", "url2", 200, 2L);
@@ -63,7 +62,6 @@ class ArtistControllerTest {
     }
 
     @Test
-    @DisplayName("GET /api/artists - Deve retornar lista vazia se não houver artistas")
     void loadSavedArtists_shouldReturnEmptyList() throws Exception {
         when(artistService.loadSavedArtists()).thenReturn(List.of());
         when(artistMapper.toDTOList(List.of())).thenReturn(List.of());
@@ -73,9 +71,7 @@ class ArtistControllerTest {
                 .andExpect(jsonPath("$.size()").value(0));
     }
 
-    // ------------------- GET /api/artists/search -------------------
     @Test
-    @DisplayName("GET /api/artists/search - Deve retornar resultados da pesquisa")
     void searchArtistsByName_shouldReturnList() throws Exception {
         DeezerArtistDTO result = new DeezerArtistDTO("Artista", "url", 10L, 100);
         when(artistService.searchArtistsByName("Artista")).thenReturn(List.of(result));
@@ -88,7 +84,6 @@ class ArtistControllerTest {
     }
 
     @Test
-    @DisplayName("GET /api/artists/search - Deve retornar lista vazia se não houver resultados")
     void searchArtistsByName_shouldReturnEmptyList() throws Exception {
         when(artistService.searchArtistsByName("Inexistente")).thenReturn(List.of());
 
@@ -99,15 +94,12 @@ class ArtistControllerTest {
     }
 
     @Test
-    @DisplayName("GET /api/artists/search - nome inválido (null ou vazio)")
     void searchArtistByName_shouldReturn400_whenInvalidName() throws Exception {
         mockMvc.perform(get("/api/artists/search").param("name", ""))
                 .andExpect(status().isBadRequest());
     }
 
-    // ------------------- GET /api/artists/{id} -------------------
     @Test
-    @DisplayName("GET /api/artists/{id} - Deve retornar 200 OK quando artista existe")
     void getArtistById_shouldReturn200_whenArtistIsSaved() throws Exception {
         Artist artist = new Artist("Nome Teste", "url", 100, 123L);
         ArtistResponseDTO artistDTO = new ArtistResponseDTO(1L, 123L, "Nome Teste", "url", 100);
@@ -122,7 +114,6 @@ class ArtistControllerTest {
     }
 
     @Test
-    @DisplayName("GET /api/artists/{id} - Deve retornar 404 Not Found quando artista não existe")
     void getArtistById_shouldReturn404_whenArtistNotFound() throws Exception {
         when(artistService.findByDbId(anyLong())).thenReturn(Optional.empty());
 
@@ -130,9 +121,8 @@ class ArtistControllerTest {
                 .andExpect(status().isNotFound());
     }
 
-    // ------------------- POST /api/artists -------------------
+
     @Test
-    @DisplayName("POST /api/artists - Deve retornar 201 Created quando novo artista é criado")
     void createArtist_shouldReturn201_whenArtistIsCreated() throws Exception {
         CreateArtistRequestDTO request = new CreateArtistRequestDTO(123L);
         Artist artist = new Artist("Nome Teste", "url", 100, 123L);
@@ -151,7 +141,6 @@ class ArtistControllerTest {
     }
 
     @Test
-    @DisplayName("POST /api/artists - Deve retornar 200 OK quando artista já existe")
     void createArtist_shouldReturn200_whenArtistAlreadyExists() throws Exception {
         CreateArtistRequestDTO request = new CreateArtistRequestDTO(123L);
         Artist artist = new Artist("Nome Teste", "url", 100, 123L);
@@ -169,7 +158,6 @@ class ArtistControllerTest {
     }
 
     @Test
-    @DisplayName("POST /api/artists - Deve retornar 400 Bad Request quando request inválido")
     void createArtist_shouldReturn400_whenInvalidRequest() throws Exception {
         CreateArtistRequestDTO request = new CreateArtistRequestDTO(null);
 
@@ -182,14 +170,12 @@ class ArtistControllerTest {
     }
 
     @Test
-    @DisplayName("DELETE /api/artists/{id} - Deve retornar 204 No Content quando sucesso")
     void deleteArtist_shouldReturn204_whenSuccess() throws Exception {
         mockMvc.perform(delete("/api/artists/1"))
                 .andExpect(status().isNoContent());
     }
 
     @Test
-    @DisplayName("DELETE /api/artists/{id} - Deve retornar 422 quando service lança BusinessException")
     void deleteArtist_shouldReturn422_whenBusinessException() throws Exception {
         doThrow(new BusinessException("Artista não pode ser deletado"))
                 .when(artistService).deleteArtistByDbId(1L);
